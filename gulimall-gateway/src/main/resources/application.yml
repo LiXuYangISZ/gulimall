@@ -19,6 +19,13 @@ spring:
           predicates:
             - Query=url,qq
 
+        - id: third_party_route #三方服务网关
+          uri: lb://gulimall-third-party
+          predicates:
+            - Path=/api/thirdparty/**
+          filters:
+            - RewritePath=/api/thirdparty/(?<segment>.*), /$\{segment}
+
         - id: gulimall-product #商品网关
           uri: lb://gulimall-product
           predicates:
