@@ -3,6 +3,9 @@ package com.atguigu.gulimall.product.service.impl;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,6 +55,35 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
     public void removeMenuByIds(List <Long> asList) {
         // TODO 检查当前删除的菜单，是否被别的地方引用
         baseMapper.deleteBatchIds(asList);
+    }
+
+    /**
+     * 找到catelogId的完整路径,如：2,23,225
+     * @param catelogId
+     * @return
+     */
+    @Override
+    public Long[] findCatelogPath(Long catelogId) {
+        List <Long> paths = new ArrayList <>();
+        findParentPath(catelogId,paths);
+        Collections.reverse(paths);
+        return paths.toArray(new Long[paths.size()]);
+    }
+
+    /**
+     * 递归查找父类的catelog
+     * @param catelogId
+     * @param paths
+     */
+    private void findParentPath(Long catelogId, List<Long> paths) {
+        // 手机当前节点id
+        paths.add(catelogId);
+        CategoryEntity category = this.getById(catelogId);
+        // 判断是否有父亲节点
+        if(category.getParentCid() != 0){
+            // 继续递归查找
+            findParentPath(category.getParentCid(),paths);
+        }
     }
 
     /**

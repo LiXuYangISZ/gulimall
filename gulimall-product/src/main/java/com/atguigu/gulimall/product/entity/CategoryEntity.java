@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;
 
 /**
@@ -63,8 +64,11 @@ public class CategoryEntity implements Serializable {
 	/**
 	 * 子分类（便于形成树形结构）
 	 * @TableField(exist = false) 表示表中不存在该字段，程序员自定义的字段，方便编码
+	 *
+	 * JsonInclude:什么情况下携带该字段
 	 */
 	@TableField(exist = false)
+	@JsonInclude(JsonInclude.Include.NON_EMPTY)
 	private List <CategoryEntity> children;
 
 }

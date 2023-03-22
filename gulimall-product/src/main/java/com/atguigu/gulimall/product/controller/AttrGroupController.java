@@ -5,6 +5,7 @@ import java.util.Map;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.product.service.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -29,6 +30,9 @@ public class AttrGroupController {
     @Autowired
     private AttrGroupService attrGroupService;
 
+    @Autowired
+    private CategoryService categoryService;
+
     /**
      * 获取三级分类对应的属性组列表
      */
@@ -48,7 +52,10 @@ public class AttrGroupController {
     //@RequiresPermissions("product:attrgroup:info")
     public R info(@PathVariable("attrGroupId") Long attrGroupId){
 		AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
-
+        Long catelogId = attrGroup.getCatelogId();
+        // 根据三级分类id获取完整的分类路径
+        Long[] path = categoryService.findCatelogPath(catelogId);
+        attrGroup.setCatelogPath(path);
         return R.ok().put("attrGroup", attrGroup);
     }
 
