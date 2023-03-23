@@ -86,13 +86,13 @@ public class BrandController {
     }
 
     /**
-     * 修改
+     * 更新品牌细节 : 包括brand表 以及 其他包含brand中相关字段的表
+     * 举例：brand表中的name更新后，CategoryBrandRelation表中的brandName也要进行更新
      */
     @RequestMapping("/update")
     //@RequiresPermissions("product:brand:update")
     public R update(@Validated({UpdateGroup.class}) @RequestBody BrandEntity brand){
-		brandService.updateById(brand);
-
+		brandService.updateDetails(brand);
         return R.ok();
     }
 

@@ -65,12 +65,13 @@ public class CategoryController {
     }
 
     /**
-     * 修改
+     * 更新分类细节：包括category表 以及 其他包含category中相关字段的表
+     * 举例：category表中的name更新后，CategoryBrandRelation表中的categoryName也要进行更新
      */
     @RequestMapping("/update")
     //@RequiresPermissions("product:category:update")
     public R update(@RequestBody CategoryEntity category){
-		categoryService.updateById(category);
+		categoryService.updateDetails(category);
 
         return R.ok();
     }
