@@ -5,11 +5,11 @@ import java.util.Map;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.product.vo.AttrRespVo;
 import com.atguigu.gulimall.product.vo.AttrVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import com.atguigu.gulimall.product.entity.AttrEntity;
 import com.atguigu.gulimall.product.service.AttrService;
 
 
@@ -29,6 +29,8 @@ public class AttrController {
 
     /**
      * 分页获取规格参数列表
+     * 注意：在电商业务中，一般很少进行多表连接查询，因为电商业务数据量很大
+     * 以该接口为例，规格表：100W，分类表：1000条，连接查询时相当于作笛卡尔积运算，将会产生10亿条数据~
      * @param params
      * @param catelogId
      * @return
@@ -40,7 +42,7 @@ public class AttrController {
     }
 
     /**
-     * 列表
+     * 分页获取属性列表
      */
     @RequestMapping("/list")
     //@RequiresPermissions("product:attr:list")
@@ -51,14 +53,14 @@ public class AttrController {
 
 
     /**
-     * 信息
+     * 查询属性详情
      */
-    @RequestMapping("/info/{attrId}")
+    @GetMapping("/info/{attrId}")
     //@RequiresPermissions("product:attr:info")
     public R info(@PathVariable("attrId") Long attrId){
-		AttrEntity attr = attrService.getById(attrId);
+		AttrRespVo attrRespVo = attrService.getAttrInfo(attrId);
 
-        return R.ok().put("attr", attr);
+        return R.ok().put("attr", attrRespVo);
     }
 
     /**
@@ -73,12 +75,12 @@ public class AttrController {
     }
 
     /**
-     * 修改
+     * 更新属性
      */
     @RequestMapping("/update")
     //@RequiresPermissions("product:attr:update")
-    public R update(@RequestBody AttrEntity attr){
-		attrService.updateById(attr);
+    public R update(@RequestBody AttrVo attr){
+		attrService.updateAttr(attr);
 
         return R.ok();
     }
@@ -89,7 +91,7 @@ public class AttrController {
     @RequestMapping("/delete")
     //@RequiresPermissions("product:attr:delete")
     public R delete(@RequestBody Long[] attrIds){
-		attrService.removeByIds(Arrays.asList(attrIds));
+		attrService.removeAttr(Arrays.asList(attrIds));
 
         return R.ok();
     }

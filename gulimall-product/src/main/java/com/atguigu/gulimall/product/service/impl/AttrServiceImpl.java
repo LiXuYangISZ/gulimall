@@ -10,6 +10,8 @@ import com.atguigu.gulimall.product.service.AttrGroupService;
 import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.AttrRespVo;
 import com.atguigu.gulimall.product.vo.AttrVo;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.extension.conditions.update.UpdateChainWrapper;
 import com.google.common.base.Joiner;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -30,6 +32,8 @@ import com.atguigu.gulimall.product.dao.AttrDao;
 import com.atguigu.gulimall.product.entity.AttrEntity;
 import com.atguigu.gulimall.product.service.AttrService;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.security.sasl.RealmCallback;
 
 
 @Service("attrService")
@@ -93,8 +97,12 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
             AttrRespVo attrRespVo = new AttrRespVo();
             BeanUtils.copyProperties(attrEntity, attrRespVo);
             AttrAttrgroupRelationEntity relationEntity = attrAttrgroupRelationService.getOne(new QueryWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attrRespVo.getAttrId()));
-            AttrGroupEntity groupEntity = attrGroupService.getById(relationEntity.getAttrGroupId());
-            attrRespVo.setGroupName(groupEntity.getAttrGroupName());
+            if(relationEntity!=null){
+                AttrGroupEntity groupEntity = attrGroupService.getById(relationEntity.getAttrGroupId());
+                if(groupEntity != null){
+                    attrRespVo.setGroupName(groupEntity.getAttrGroupName());
+                }
+            }
 
             Long[] catelogPath = categoryService.findCatelogPath(attrEntity.getCatelogId());
             List <String> categoryPath = Arrays.asList(catelogPath).stream().map(categoryId -> {
@@ -107,6 +115,57 @@ public class AttrServiceImpl extends ServiceImpl<AttrDao, AttrEntity> implements
         }).collect(Collectors.toList());
         pageUtils.setList(list);
         return pageUtils;
+    }
+
+    @Override
+    public AttrRespVo getAttrInfo(Long attrId) {
+        AttrRespVo attrRespVo = new AttrRespVo();
+        // 保存attr基本信息
+        AttrEntity attrEntity = this.getById(attrId);
+        BeanUtils.copyProperties(attrEntity,attrRespVo);
+
+        AttrAttrgroupRelationEntity relationEntity = attrAttrgroupRelationService.getOne(new QueryWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attrRespVo.getAttrId()));
+        if(relationEntity != null){
+            attrRespVo.setAttrGroupId(relationEntity.getAttrGroupId());
+            AttrGroupEntity groupEntity = attrGroupService.getById(relationEntity.getAttrGroupId());
+            if(groupEntity!=null){
+                attrRespVo.setGroupName(groupEntity.getAttrGroupName());
+            }
+        }
+
+        Long[] catelogPath = categoryService.findCatelogPath(attrRespVo.getCatelogId());
+        attrRespVo.setCatelogPath(catelogPath);
+
+        return attrRespVo;
+    }
+
+    @Transactional
+    @Override
+    public void updateAttr(AttrVo attr) {
+        AttrEntity attrEntity = new AttrEntity();
+        BeanUtils.copyProperties(attr,attrEntity);
+        // 更新attr表
+        this.update(attrEntity,new UpdateWrapper <AttrEntity>().eq("attr_id",attrEntity.getAttrId()));
+        int count = attrAttrgroupRelationService.count(new QueryWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+        AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
+        relationEntity.setAttrGroupId(attr.getAttrGroupId());
+        relationEntity.setAttrId(attr.getAttrId());
+        if(count > 0){
+            // 更新关联表
+            attrAttrgroupRelationService.update(relationEntity,new UpdateWrapper <AttrAttrgroupRelationEntity>().eq("attr_id",attr.getAttrId()));
+        }else{
+            // 插入数据
+           attrAttrgroupRelationService.save(relationEntity);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void removeAttr(List <Long> attrIdList) {
+        attrIdList.forEach(attrId->{
+            this.removeById(attrId);
+            attrAttrgroupRelationService.remove(new QueryWrapper <AttrAttrgroupRelationEntity>().eq("attr_id",attrId));
+        });
     }
 
 }
