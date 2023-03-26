@@ -28,7 +28,8 @@ public class AttrController {
 
 
     /**
-     * 分页获取规格参数列表
+     * 获取规格参数列表：/product/attr/base/list/{catelogId}
+     * 获取分类销售属性：/product/attr/sale/list/{catelogId}
      * 注意：在电商业务中，一般很少进行多表连接查询，因为电商业务数据量很大
      * 以该接口为例，规格表：100W，分类表：1000条，连接查询时相当于作笛卡尔积运算，将会产生10亿条数据~
      * @param params
