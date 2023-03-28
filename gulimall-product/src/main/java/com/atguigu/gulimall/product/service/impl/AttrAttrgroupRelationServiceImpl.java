@@ -2,18 +2,12 @@ package com.atguigu.gulimall.product.service.impl;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
 import com.atguigu.gulimall.product.dao.AttrAttrgroupRelationDao;
 import com.atguigu.gulimall.product.entity.AttrAttrgroupRelationEntity;
 import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
@@ -34,11 +28,13 @@ public class AttrAttrgroupRelationServiceImpl extends ServiceImpl<AttrAttrgroupR
 
     @Override
     public void removeRelation(List <AttrAttrgroupRelationEntity> attrgroupRelationEntityList) {
-        List <Long> attrIds = attrgroupRelationEntityList.stream().map(AttrAttrgroupRelationEntity::getAttrId).collect(Collectors.toList());
-        this.update(null, Wrappers.<AttrAttrgroupRelationEntity>lambdaUpdate()
-                .set(AttrAttrgroupRelationEntity::getAttrGroupId,null)
-                .in(AttrAttrgroupRelationEntity::getAttrId,attrIds)
-        );
+        QueryWrapper <AttrAttrgroupRelationEntity> queryWrapper = new QueryWrapper <>();
+        attrgroupRelationEntityList.forEach((attrgroupRelation->{
+            queryWrapper.or(wrapper->{
+                wrapper.eq("attr_id",attrgroupRelation.getAttrId()).eq("attr_group_id",attrgroupRelation.getAttrGroupId());
+            });
+        }));
+        this.remove(queryWrapper);
     }
 
     /**
@@ -47,9 +43,7 @@ public class AttrAttrgroupRelationServiceImpl extends ServiceImpl<AttrAttrgroupR
      */
     @Override
     public void saveBatchAttrRelation(List <AttrAttrgroupRelationEntity> list) {
-        list.forEach(attrAttrgroupRelation ->
-                this.update(attrAttrgroupRelation,new QueryWrapper <AttrAttrgroupRelationEntity>().eq("attr_id",attrAttrgroupRelation.getAttrId()))
-        );
+        this.saveBatch(list);
     }
 
 
