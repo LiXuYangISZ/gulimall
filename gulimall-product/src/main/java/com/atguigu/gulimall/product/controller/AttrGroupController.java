@@ -40,6 +40,16 @@ public class AttrGroupController {
     @Autowired
     AttrAttrgroupRelationService attrAttrgroupRelationService;
 
+    /**
+     * 添加属性与分组关联关系
+     * @param attrgroupRelationEntities
+     * @return
+     */
+    @PostMapping("/attr/relation")
+    public R addAttrRelation(@RequestBody AttrAttrgroupRelationEntity[] attrgroupRelationEntities){
+        attrAttrgroupRelationService.saveBatchAttrRelation(Arrays.asList(attrgroupRelationEntities));
+        return R.ok();
+    }
 
     /**
      * 获取属性分组的关联的所有属性
@@ -51,6 +61,17 @@ public class AttrGroupController {
     public R attrRelation(@PathVariable("attrgroupId") Long attrGroupId) {
         List <AttrEntity> attrEntityList = attrService.getRelationAttr(attrGroupId);
         return R.ok().put("data", attrEntityList);
+    }
+
+    /**
+     * 获取属性分组没有关联的其他属性
+     * @param attrGroupId
+     * @return
+     */
+    @GetMapping("/{attrgroupId}/noattr/relation")
+    public R attrNoRelation(@PathVariable("attrgroupId") Long attrGroupId,@RequestParam Map <String, Object> params) {
+        PageUtils page = attrService.getNoRelationAttr(params,attrGroupId);
+        return R.ok().put("page", page);
     }
 
     /**

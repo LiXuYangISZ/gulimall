@@ -12,16 +12,15 @@ import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.AttrRespVo;
 import com.atguigu.gulimall.product.vo.AttrVo;
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.base.Joiner;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -34,6 +33,7 @@ import com.atguigu.gulimall.product.service.AttrService;
 import org.springframework.transaction.annotation.Transactional;
 
 
+@Slf4j
 @Service("attrService")
 public class AttrServiceImpl extends ServiceImpl <AttrDao, AttrEntity> implements AttrService {
 
@@ -161,9 +161,14 @@ public class AttrServiceImpl extends ServiceImpl <AttrDao, AttrEntity> implement
             AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
             relationEntity.setAttrGroupId(attr.getAttrGroupId());
             relationEntity.setAttrId(attr.getAttrId());
+            log.info("attrGroupId：{}",attr.getAttrGroupId());
+            log.info("attrId：{}",attr.getAttrId());
             if (count > 0) {
-                // 更新关联表
-                attrAttrgroupRelationService.update(relationEntity, new UpdateWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+                // 更新关联表[这里一定要用lambdaUpdate哦，因为如果分类id为空，我也需要覆盖数据库中的脏数据]
+                attrAttrgroupRelationService.update(null, Wrappers.<AttrAttrgroupRelationEntity>lambdaUpdate()
+                        .set(AttrAttrgroupRelationEntity::getAttrGroupId,attr.getAttrGroupId())
+                        .eq(AttrAttrgroupRelationEntity::getAttrId,attr.getAttrId()));
+                // attrAttrgroupRelationService.update(relationEntity, new UpdateWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
             } else {
                 // 插入数据
                 attrAttrgroupRelationService.save(relationEntity);
@@ -196,6 +201,43 @@ public class AttrServiceImpl extends ServiceImpl <AttrDao, AttrEntity> implement
             attrList = attrService.listByIds(attrIds);
         }
         return attrList;
+    }
+
+    @Override
+    public PageUtils getNoRelationAttr(Map <String, Object> params, Long attrGroupId) {
+        // 首先我们分析下 三张表的关系：分组表:属性表 = 1:n     属性表：中间关系表=1:1  分组表：中间表=1：
+        // 1.当前分组只能关联自己所属的分类里面的所有属性
+        AttrGroupEntity attrGroup = attrGroupService.getById(attrGroupId);
+        Long catelogId = attrGroup.getCatelogId();
+
+        // 2.当前分组只能关联别的分组没有引用的属性 = 所有属性 - 别的分组已经引用的属性- 当前分组已经引用的属性
+        // 2.1找到当前分类所有的分组
+        List <AttrGroupEntity> otherAttrGroup = attrGroupService.list(new QueryWrapper <AttrGroupEntity>()
+                // .ne("attr_group_id", attrGroupId)
+                .eq("catelog_id", catelogId));
+        List <Long> otherAttrGroupIds = otherAttrGroup.stream().map(AttrGroupEntity::getAttrGroupId).collect(Collectors.toList());
+        // 2.2找到其他分组关联的本分类的属性
+        List <AttrAttrgroupRelationEntity> attrAttrgroupRelationEntities = attrAttrgroupRelationService.list(
+                new QueryWrapper <AttrAttrgroupRelationEntity>().in("attr_group_id",otherAttrGroupIds));
+        List <Long> otherAttrIds = attrAttrgroupRelationEntities.stream().map(AttrAttrgroupRelationEntity::getAttrId
+        ).collect(Collectors.toList());
+        // 2.3从当前分类的所有属性中剔除所有其他分类关联的属性
+        QueryWrapper <AttrEntity> queryWrapper = new QueryWrapper <AttrEntity>()
+                .eq("catelog_id", catelogId)
+                .eq("attr_type",AttrEnum.ATTR_TYPE_BASE.getCode());
+        if(otherAttrIds!=null && otherAttrIds.size() > 0){
+            queryWrapper.notIn("attr_id",otherAttrIds);
+        }
+        // 查询条件
+        String key = (String) params.get("key");
+        if(!StringUtils.isEmpty(key)){
+            queryWrapper.and(wrapper->{
+                wrapper.eq("attr_id",key).or().like("attr_name",key);
+            });
+        }
+
+        IPage <AttrEntity> page = this.page(new Query <AttrEntity>().getPage(params), queryWrapper);
+        return new PageUtils(page);
     }
 
 }

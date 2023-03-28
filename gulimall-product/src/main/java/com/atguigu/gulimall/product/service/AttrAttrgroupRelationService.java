@@ -19,5 +19,7 @@ public interface AttrAttrgroupRelationService extends IService<AttrAttrgroupRela
     PageUtils queryPage(Map<String, Object> params);
 
     void removeRelation(List <AttrAttrgroupRelationEntity> attrgroupRelationEntityList);
+
+    void saveBatchAttrRelation(List<AttrAttrgroupRelationEntity> asList);
 }
 
