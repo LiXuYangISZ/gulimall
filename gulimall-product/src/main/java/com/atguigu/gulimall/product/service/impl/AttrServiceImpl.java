@@ -123,7 +123,6 @@ public class AttrServiceImpl extends ServiceImpl <AttrDao, AttrEntity> implement
         return pageUtils;
     }
 
-    @Transactional
     @Override
     public AttrRespVo getAttrInfo(Long attrId) {
         AttrRespVo attrRespVo = new AttrRespVo();
@@ -161,16 +160,17 @@ public class AttrServiceImpl extends ServiceImpl <AttrDao, AttrEntity> implement
             AttrAttrgroupRelationEntity relationEntity = new AttrAttrgroupRelationEntity();
             relationEntity.setAttrGroupId(attr.getAttrGroupId());
             relationEntity.setAttrId(attr.getAttrId());
-            log.info("attrGroupId：{}",attr.getAttrGroupId());
-            log.info("attrId：{}",attr.getAttrId());
             if (count > 0) {
-                // 更新关联表[这里一定要用lambdaUpdate哦，因为如果分类id为空，我也需要覆盖数据库中的脏数据]
-                attrAttrgroupRelationService.update(null, Wrappers.<AttrAttrgroupRelationEntity>lambdaUpdate()
-                        .set(AttrAttrgroupRelationEntity::getAttrGroupId,attr.getAttrGroupId())
-                        .eq(AttrAttrgroupRelationEntity::getAttrId,attr.getAttrId()));
+                if(attr.getAttrGroupId() != null){
+                    attrAttrgroupRelationService.update(relationEntity, new UpdateWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
+                }else{
+                    attrAttrgroupRelationService.remove(new QueryWrapper <AttrAttrgroupRelationEntity>().eq("attr_id",attr.getAttrId()));
+                }
             } else {
                 // 插入数据
-                attrAttrgroupRelationService.save(relationEntity);
+                if(attr.getAttrGroupId() != null){
+                    attrAttrgroupRelationService.save(relationEntity);
+                }
             }
         } else {
             // 如果是从规格属性->销售属性，每次更新时候需要判断中间表是否有值，如果有则进行删除~

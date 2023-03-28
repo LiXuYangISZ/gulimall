@@ -8,7 +8,6 @@ import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
 import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.AttrGroupRespVo;
 import com.atguigu.gulimall.product.vo.AttrGroupVo;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.base.Joiner;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,15 +85,10 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
     @Transactional
     @Override
     public void removeGroup(List <Long> list) {
-        // 移除分组表
+        // 删除分组信息
         this.removeByIds(list);
-        // 更新中间表
-        List <AttrAttrgroupRelationEntity> attrAttrgroupRelationList = attrAttrgroupRelationService.list(new QueryWrapper <AttrAttrgroupRelationEntity>().in("attr_group_id", list));
-        List <Long> attrIds = attrAttrgroupRelationList.stream().map(attrAttrgroupRelationEntity -> attrAttrgroupRelationEntity.getAttrId()).collect(Collectors.toList());
-        attrAttrgroupRelationService.update(null, Wrappers.<AttrAttrgroupRelationEntity>lambdaUpdate()
-        .set(AttrAttrgroupRelationEntity::getAttrGroupId,null)
-        .in(AttrAttrgroupRelationEntity::getAttrId,attrIds)
-        );
+        // 删除与属性绑定的关联信息
+        attrAttrgroupRelationService.remove(new QueryWrapper <AttrAttrgroupRelationEntity>().in("attr_group_id",list));
     }
 
 }
