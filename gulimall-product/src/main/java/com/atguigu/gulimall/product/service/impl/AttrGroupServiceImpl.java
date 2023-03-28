@@ -2,10 +2,13 @@ package com.atguigu.gulimall.product.service.impl;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
+import com.atguigu.gulimall.product.entity.AttrAttrgroupRelationEntity;
 import com.atguigu.gulimall.product.entity.CategoryEntity;
+import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
 import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.AttrGroupRespVo;
 import com.atguigu.gulimall.product.vo.AttrGroupVo;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.base.Joiner;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +26,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atguigu.gulimall.product.dao.AttrGroupDao;
 import com.atguigu.gulimall.product.entity.AttrGroupEntity;
 import com.atguigu.gulimall.product.service.AttrGroupService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 
@@ -31,6 +35,9 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
 
     @Autowired
     CategoryService categoryService;
+
+    @Autowired
+    AttrAttrgroupRelationService attrAttrgroupRelationService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -74,6 +81,20 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
         }).collect(Collectors.toList());
         pageUtils.setList(list);
         return pageUtils;
+    }
+
+    @Transactional
+    @Override
+    public void removeGroup(List <Long> list) {
+        // 移除分组表
+        this.removeByIds(list);
+        // 更新中间表
+        List <AttrAttrgroupRelationEntity> attrAttrgroupRelationList = attrAttrgroupRelationService.list(new QueryWrapper <AttrAttrgroupRelationEntity>().in("attr_group_id", list));
+        List <Long> attrIds = attrAttrgroupRelationList.stream().map(attrAttrgroupRelationEntity -> attrAttrgroupRelationEntity.getAttrId()).collect(Collectors.toList());
+        attrAttrgroupRelationService.update(null, Wrappers.<AttrAttrgroupRelationEntity>lambdaUpdate()
+        .set(AttrAttrgroupRelationEntity::getAttrGroupId,null)
+        .in(AttrAttrgroupRelationEntity::getAttrId,attrIds)
+        );
     }
 
 }

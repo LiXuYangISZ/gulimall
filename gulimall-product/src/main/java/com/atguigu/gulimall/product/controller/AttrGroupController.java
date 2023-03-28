@@ -123,13 +123,12 @@ public class AttrGroupController {
     }
 
     /**
-     * 删除
+     * 删除分组【分组+分组与属性的关联】
      */
     @RequestMapping("/delete")
     //@RequiresPermissions("product:attrgroup:delete")
     public R delete(@RequestBody Long[] attrGroupIds) {
-        attrGroupService.removeByIds(Arrays.asList(attrGroupIds));
-
+        attrGroupService.removeGroup(Arrays.asList(attrGroupIds));
         return R.ok();
     }
 

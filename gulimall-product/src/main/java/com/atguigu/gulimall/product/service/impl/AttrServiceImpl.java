@@ -168,7 +168,6 @@ public class AttrServiceImpl extends ServiceImpl <AttrDao, AttrEntity> implement
                 attrAttrgroupRelationService.update(null, Wrappers.<AttrAttrgroupRelationEntity>lambdaUpdate()
                         .set(AttrAttrgroupRelationEntity::getAttrGroupId,attr.getAttrGroupId())
                         .eq(AttrAttrgroupRelationEntity::getAttrId,attr.getAttrId()));
-                // attrAttrgroupRelationService.update(relationEntity, new UpdateWrapper <AttrAttrgroupRelationEntity>().eq("attr_id", attr.getAttrId()));
             } else {
                 // 插入数据
                 attrAttrgroupRelationService.save(relationEntity);
