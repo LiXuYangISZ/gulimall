@@ -3,11 +3,14 @@ package com.atguigu.gulimall.product.service.impl;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import com.atguigu.gulimall.product.entity.AttrAttrgroupRelationEntity;
+import com.atguigu.gulimall.product.entity.AttrEntity;
 import com.atguigu.gulimall.product.entity.CategoryEntity;
 import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
+import com.atguigu.gulimall.product.service.AttrService;
 import com.atguigu.gulimall.product.service.CategoryService;
 import com.atguigu.gulimall.product.vo.AttrGroupRespVo;
 import com.atguigu.gulimall.product.vo.AttrGroupVo;
+import com.atguigu.gulimall.product.vo.AttrGroupWithAttrsVo;
 import com.google.common.base.Joiner;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,9 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
 
     @Autowired
     AttrAttrgroupRelationService attrAttrgroupRelationService;
+
+    @Autowired
+    AttrService attrService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -89,6 +95,30 @@ public class AttrGroupServiceImpl extends ServiceImpl<AttrGroupDao, AttrGroupEnt
         this.removeByIds(list);
         // 删除与属性绑定的关联信息
         attrAttrgroupRelationService.remove(new QueryWrapper <AttrAttrgroupRelationEntity>().in("attr_group_id",list));
+    }
+
+    /**
+     * 获取分类下所有分组&关联属性
+     * @param catelogId
+     * @return
+     */
+    @Override
+    public List <AttrGroupWithAttrsVo> getAttrGroupWithAttrsByCatelogId(Long catelogId) {
+        // 1.查出当前分类下的所有属性分组
+        List <AttrGroupEntity> attrGroupEntities = this.list(new QueryWrapper <AttrGroupEntity>().eq("catelog_id", catelogId));
+        // 2.查出每个属性分组的所有属性
+        List <AttrGroupWithAttrsVo> attrGroupWithAttrsVos = attrGroupEntities.stream().map(attrGroupEntity -> {
+            AttrGroupWithAttrsVo attrGroupWithAttrsVo = new AttrGroupWithAttrsVo();
+            BeanUtils.copyProperties(attrGroupEntity, attrGroupWithAttrsVo);
+            List <AttrEntity> attrs = attrService.getRelationAttr(attrGroupEntity.getAttrGroupId());
+            if(attrs.size() > 0){
+                attrGroupWithAttrsVo.setAttrs(attrs);
+            }
+            return attrGroupWithAttrsVo;
+        }).filter(attrGroupWithAttrsVo->{
+            return attrGroupWithAttrsVo.getAttrs() != null;
+        }).collect(Collectors.toList());
+        return attrGroupWithAttrsVos;
     }
 
 }
