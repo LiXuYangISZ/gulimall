@@ -3,9 +3,13 @@ package com.atguigu.gulimall.product.controller;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.product.vo.BrandVo;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,6 +38,24 @@ public class CategoryBrandRelationController {
     public R catelogList(@RequestParam("brandId") Long brandId){
         List <CategoryBrandRelationEntity> data= categoryBrandRelationService.catelogList(brandId);
         return R.ok().put("data", data);
+    }
+
+    /**
+     * 获取分类关联的品牌
+     *
+     * 1、Controller：处理请求，接受和校验数据
+     * 2、Service接受Controller传来的数据，进行业务处理
+     * 3、Controller接受Service处理完的数据，封装页面指定的Vo
+     */
+    @GetMapping("/brands/list")
+    public R relationBrandsList(@RequestParam(value = "catId",required = true) Long catId){
+        List <CategoryBrandRelationEntity> list = categoryBrandRelationService.list(new QueryWrapper <CategoryBrandRelationEntity>().eq("catelog_id", catId));
+        List <BrandVo> brandVoList = list.stream().map(categoryBrandRelation -> {
+            BrandVo brandVo = new BrandVo();
+            BeanUtils.copyProperties(categoryBrandRelation, brandVo);
+            return brandVo;
+        }).collect(Collectors.toList());
+        return R.ok().put("data",brandVoList);
     }
 
     /**
