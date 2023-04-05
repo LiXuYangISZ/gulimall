@@ -19,6 +19,7 @@ public class SkuReductionTo {
     private Integer countStatus;
     private BigDecimal fullPrice;
     private BigDecimal reducePrice;
+    private BigDecimal price;
     private Integer priceStatus;
     private List <MemberPrice> memberPrice;
 }
