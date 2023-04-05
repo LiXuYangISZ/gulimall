@@ -23,11 +23,11 @@ public class Skus {
     private String skuSubtitle;
     private List<Images> images;
     private List<String> descar;
-    private int fullCount;
+    private Integer fullCount;
     private BigDecimal discount;
-    private int countStatus;
+    private Integer countStatus;
     private BigDecimal fullPrice;
     private BigDecimal reducePrice;
-    private int priceStatus;
+    private Integer priceStatus;
     private List<MemberPrice> memberPrice;
 }
