@@ -12,6 +12,7 @@ import com.atguigu.gulimall.product.vo.product.*;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -184,6 +185,38 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
 
         });
 
+    }
+
+    @Override
+    public PageUtils queryPageByCondition(Map <String, Object> params) {
+        QueryWrapper <SpuInfoEntity> queryWrapper = new QueryWrapper <>();
+        String catelogId = (String) params.get("catelogId");
+        String status = (String) params.get("status");
+        String brandId = (String) params.get("brandId");
+        String key = (String) params.get("key");
+        if(StringUtils.isNotEmpty(key)){
+            queryWrapper.and(wrapper->{
+                wrapper.eq("id",key).or().like("spu_name",key);
+            });
+        }
+        if(StringUtils.isNotEmpty(catelogId) && !catelogId.equals("0")){
+            log.info("hahhhh：{}",catelogId);
+            queryWrapper.eq("catalog_id",catelogId);
+        }
+        if(StringUtils.isNotEmpty(brandId) && !brandId.equals("0")){
+            log.info("hahhhh：{}",brandId);
+            queryWrapper.eq("brand_id",brandId);
+        }
+        if(StringUtils.isNotEmpty(status)){
+            queryWrapper.eq("publish_status",status);
+        }
+
+        IPage <SpuInfoEntity> page = this.page(
+                new Query <SpuInfoEntity>().getPage(params),
+                queryWrapper
+        );
+
+        return new PageUtils(page);
     }
 
 }

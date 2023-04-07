@@ -25,3 +25,10 @@
 2.  新建 Feat_xxx 分支
 3.  提交代码
 4.  新建 Pull Request
+
+#### 项目后期优化
+1. 入参全部改为DTO，视图数据全部改为VO。
+2. 请求遵循RESTFUL规范
+
+#### 项目存在的Bug
+1. 查询SPU商品有时候回报：Required Long parameter 'catId' is not present（具体原因待排查）
