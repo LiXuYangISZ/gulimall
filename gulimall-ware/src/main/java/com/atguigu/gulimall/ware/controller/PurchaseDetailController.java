@@ -4,11 +4,7 @@ import java.util.Arrays;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.ware.entity.PurchaseDetailEntity;
 import com.atguigu.gulimall.ware.service.PurchaseDetailService;
@@ -31,12 +27,12 @@ public class PurchaseDetailController {
     private PurchaseDetailService purchaseDetailService;
 
     /**
-     * 列表
+     * 查询采购需求
      */
-    @RequestMapping("/list")
+    @GetMapping("/list")
     //@RequiresPermissions("ware:purchasedetail:list")
     public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = purchaseDetailService.queryPage(params);
+        PageUtils page = purchaseDetailService.queryPageByCondition(params);
 
         return R.ok().put("page", page);
     }
