@@ -29,7 +29,14 @@
 #### 项目后期优化
 1. 入参全部改为DTO，视图数据全部改为VO。
 2. 请求遵循RESTFUL规范
-3. 自定义判空工具类：包括 isBlank+ "0" +"null" + "前后去空格"
+<font color=green>3. 自定义判空工具类：包括 isBlank+ "0" +"null" + 其他字符 </font>   
+
+```java
+public static boolean isAllNotEmpty(String... args) {
+    return Stream.of(args).noneMatch(StringUtils::isBlank);
+}
+```
+
 
 #### 项目存在的Bug
 1. 查询SPU商品有时候回报：Required Long parameter 'catId' is not present（具体原因待排查）
