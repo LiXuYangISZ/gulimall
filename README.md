@@ -29,7 +29,9 @@
 #### 项目后期优化
 1. 入参全部改为DTO，视图数据全部改为VO。
 2. 请求遵循RESTFUL规范
-<font color=green>3. 自定义判空工具类：包括 isBlank+ "0" +"null" + 其他字符 </font>   
+<font color=green>3. 自定义判空工具类：包括 isBlank+ "0" +"null" + 其他字符 </font>
+3. ware->wms_purchase、wms_purchase_detail：采购金额我们可以搞一下（远程调用获取这个商品的金额）
+4. ware->wms_purchase 仓库id我们可以设置下，比如我们规定 一个采购单只能采购同一个仓库的【这个我们管理员自己控制就行了，就好像外卖员、快递员负责自己的区域一样，别问我为啥】   
 
 ```java
 public static boolean isAllNotEmpty(String... args) {

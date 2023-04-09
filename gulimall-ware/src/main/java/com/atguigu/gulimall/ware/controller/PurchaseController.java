@@ -62,6 +62,17 @@ public class PurchaseController {
         return R.ok().put("list", list);
     }
 
+    /**
+     * 领取采购单
+     * @param ids
+     * @return
+     */
+    @PostMapping("/received")
+    public R receive(@RequestBody List<Long> ids){
+        purchaseService.receive(ids);
+        return R.ok();
+    }
+
 
     /**
      * 信息
@@ -91,6 +102,8 @@ public class PurchaseController {
     @RequestMapping("/update")
     //@RequiresPermissions("ware:purchase:update")
     public R update(@RequestBody PurchaseEntity purchase){
+        // MP默认的填充策略是，如果有日期字段就按照给的，如果没有就MP框架设置。但是这里我们要MP强制每次都要写入UpdateTime
+        purchase.setUpdateTime(null);
 		purchaseService.updateById(purchase);
 
         return R.ok();
