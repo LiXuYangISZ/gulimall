@@ -1,5 +1,7 @@
 package com.atguigu.gulimall.ware.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 
@@ -67,6 +69,7 @@ public class WareOrderTaskEntity implements Serializable {
 	/**
 	 * create_time
 	 */
+	@TableField(fill = FieldFill.INSERT)
 	private Date createTime;
 	/**
 	 * 仓库id

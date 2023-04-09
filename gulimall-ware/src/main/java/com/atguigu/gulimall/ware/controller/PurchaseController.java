@@ -1,14 +1,12 @@
 package com.atguigu.gulimall.ware.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
+import com.atguigu.gulimall.ware.vo.MergeVo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.ware.entity.PurchaseEntity;
 import com.atguigu.gulimall.ware.service.PurchaseService;
@@ -30,15 +28,38 @@ public class PurchaseController {
     @Autowired
     private PurchaseService purchaseService;
 
+
     /**
      * 列表
+     * @return
      */
-    @RequestMapping("/list")
-    //@RequiresPermissions("ware:purchase:list")
+    @GetMapping("/list")
     public R list(@RequestParam Map<String, Object> params){
-        PageUtils page = purchaseService.queryPage(params);
+        PageUtils page  = purchaseService.queryPage(params);
 
         return R.ok().put("page", page);
+    }
+
+    /**
+     * 合并采购需求
+     * @param mergeVo
+     * @return
+     */
+    @PostMapping("/merge")
+    public R mergePurchase(@RequestBody MergeVo mergeVo){
+        purchaseService.mergePurchase(mergeVo);
+        return R.ok();
+    }
+
+
+    /**
+     * 查询未领取的采购单
+     */
+    @GetMapping("/unreceive/list")
+    public R unReceiveList(){
+        List<PurchaseEntity> list  = purchaseService.queryUnreceiveList();
+
+        return R.ok().put("list", list);
     }
 
 
