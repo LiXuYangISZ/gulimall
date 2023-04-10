@@ -4,19 +4,23 @@ import com.atguigu.common.constant.ware.PurchaseDetailStatusEnum;
 import com.atguigu.common.constant.ware.PurchaseStatusEnum;
 import com.atguigu.gulimall.ware.entity.PurchaseDetailEntity;
 import com.atguigu.gulimall.ware.service.PurchaseDetailService;
+import com.atguigu.gulimall.ware.service.WareSkuService;
 import com.atguigu.gulimall.ware.vo.MergeVo;
+import com.atguigu.gulimall.ware.vo.PurchaseDoneVo;
+import com.atguigu.gulimall.ware.vo.PurchaseItemDoneVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
-import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atguigu.common.utils.PageUtils;
@@ -33,6 +37,9 @@ public class PurchaseServiceImpl extends ServiceImpl <PurchaseDao, PurchaseEntit
 
     @Autowired
     PurchaseDetailService purchaseDetailService;
+
+    @Autowired
+    WareSkuService wareSkuService;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -102,11 +109,43 @@ public class PurchaseServiceImpl extends ServiceImpl <PurchaseDao, PurchaseEntit
         // 3.改变采购项的状态
         purchaseEntities.forEach(item -> {
             LambdaUpdateWrapper <PurchaseDetailEntity> updateWrapper = new LambdaUpdateWrapper <>();
-            updateWrapper.eq(PurchaseDetailEntity::getPurchaseId,item.getId());
+            updateWrapper.eq(PurchaseDetailEntity::getPurchaseId, item.getId());
             PurchaseDetailEntity purchaseDetailEntity = new PurchaseDetailEntity();
             purchaseDetailEntity.setStatus(PurchaseDetailStatusEnum.BUYING.getCode());
-            purchaseDetailService.update(purchaseDetailEntity,updateWrapper);
+            purchaseDetailService.update(purchaseDetailEntity, updateWrapper);
         });
+    }
+
+    @Transactional
+    @Override
+    public void done(PurchaseDoneVo purchaseDoneVo) {
+        // 1.修改采购项的信息
+        List <PurchaseItemDoneVo> items = purchaseDoneVo.getItems();
+        boolean flag = true;
+        List <PurchaseDetailEntity> detailEntities = new ArrayList <>();
+        BigDecimal price = BigDecimal.ZERO;
+        for (PurchaseItemDoneVo item : items) {
+            PurchaseDetailEntity purchaseDetailEntity = new PurchaseDetailEntity();
+            purchaseDetailEntity.setStatus(item.getStatus());
+            purchaseDetailEntity.setId(item.getItemId());
+            if (PurchaseDetailStatusEnum.HASERROR.getCode().equals(item.getStatus())) {
+                flag = false;
+            } else {
+                // 3.商品库存增加
+                PurchaseDetailEntity detailEntity = purchaseDetailService.getById(item.getItemId());
+                wareSkuService.addStock(detailEntity.getSkuId(), detailEntity.getWareId(), detailEntity.getSkuNum());
+                // 采购价格计算
+                price = price.add(detailEntity.getSkuPrice().multiply(BigDecimal.valueOf(detailEntity.getSkuNum())));
+            }
+            detailEntities.add(purchaseDetailEntity);
+        }
+        purchaseDetailService.updateBatchById(detailEntities);
+        // 2.修改采购单的状态（需要遍历所有的采购项来决定）
+        PurchaseEntity purchaseEntity = new PurchaseEntity();
+        purchaseEntity.setId(purchaseDoneVo.getId());
+        purchaseEntity.setAmount(price);
+        purchaseEntity.setStatus(flag ? PurchaseStatusEnum.FINISHED.getCode() : PurchaseStatusEnum.HASERROR.getCode());
+        this.updateById(purchaseEntity);
     }
 
 }
