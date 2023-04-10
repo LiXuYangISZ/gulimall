@@ -1,12 +1,16 @@
 package com.atguigu.gulimall.product.controller;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.product.entity.ProductAttrValueEntity;
+import com.atguigu.gulimall.product.service.ProductAttrValueService;
 import com.atguigu.gulimall.product.vo.AttrRespVo;
 import com.atguigu.gulimall.product.vo.AttrVo;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,7 +28,10 @@ import com.atguigu.gulimall.product.service.AttrService;
 @RequestMapping("product/attr")
 public class AttrController {
     @Autowired
-    private AttrService attrService;
+    AttrService attrService;
+
+    @Autowired
+    ProductAttrValueService productAttrValueService;
 
 
     /**
@@ -42,6 +49,30 @@ public class AttrController {
                           @PathVariable("attrType") String attrType){
         PageUtils page = attrService.queryBaseAttrPage(params,catelogId,attrType);
         return R.ok().put("page",page);
+    }
+
+    /**
+     *
+     * 获取spu规格
+     * @param spuId
+     * @return
+     */
+    @GetMapping("/base/listforspu/{spuId}")
+    public R baseAttrListForSpu(@PathVariable("spuId") Long spuId){
+        List <ProductAttrValueEntity> productAttrValueEntities = productAttrValueService.list(new LambdaQueryWrapper <ProductAttrValueEntity>().eq(ProductAttrValueEntity::getSpuId, spuId));
+        return R.ok().put("data", productAttrValueEntities);
+    }
+
+    /**
+     * 修改商品规格
+     * @param spuId
+     * @param productAttrValueEntities
+     * @return
+     */
+    @PostMapping("/update/{spuId}")
+    public R updateSpuAttr(@PathVariable("spuId") Long spuId,@RequestBody List<ProductAttrValueEntity> productAttrValueEntities){
+        productAttrValueService.updateSpuAttr(spuId,productAttrValueEntities);
+        return R.ok();
     }
 
     /**
