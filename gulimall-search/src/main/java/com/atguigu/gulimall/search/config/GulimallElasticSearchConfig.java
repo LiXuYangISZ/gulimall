@@ -1,9 +1,7 @@
 package com.atguigu.gulimall.search.config;
 
 import org.apache.http.HttpHost;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.elasticsearch.client.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,6 +14,20 @@ import org.springframework.context.annotation.Configuration;
  */
 @Configuration
 public class GulimallElasticSearchConfig {
+
+    public static final RequestOptions COMMON_OPTIONS;
+
+    /**
+     * 请求头设置，比如可以添加访问凭证，才可以操作ES
+     */
+    static {
+        RequestOptions.Builder builder = RequestOptions.DEFAULT.toBuilder();
+        // builder.addHeader("Authorization", "Bearer " + TOKEN);
+        // builder.setHttpAsyncResponseConsumerFactory(
+        //         new HttpAsyncResponseConsumerFactory
+        //                 .HeapBufferedResponseConsumerFactory(30 * 1024 * 1024 * 1024));
+        COMMON_OPTIONS = builder.build();
+    }
 
     @Bean
     public RestHighLevelClient esRestClient(){
