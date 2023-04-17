@@ -2,6 +2,7 @@ package com.atguigu.gulimall.product.service.impl;
 
 import com.atguigu.common.to.SkuReductionTo;
 import com.atguigu.common.to.SpuBoundsTo;
+import com.atguigu.common.to.es.SkuEsModel;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import com.atguigu.common.utils.R;
@@ -57,6 +58,12 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
 
     @Autowired
     CouponFeignService couponFeignService;
+
+    @Autowired
+    BrandService brandService;
+
+    @Autowired
+    CategoryService categoryService;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -217,6 +224,31 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public void up(Long spuId) {
+        // 1、查询出所有Sku信息
+        List<SkuInfoEntity> skuInfoEntities = skuInfoService.getSkusBySpuId(spuId);
+        // 2、封装每个sku的信息
+        List <SkuEsModel> skuEsModels = skuInfoEntities.stream().map(skuInfoEntity -> {
+            SkuEsModel skuEsModel = new SkuEsModel();
+            BeanUtils.copyProperties(skuInfoEntity, skuEsModel);
+            skuEsModel.setSkuPrice(skuInfoEntity.getPrice());
+            skuEsModel.setSkuImg(skuInfoEntity.getSkuDefaultImg());
+            skuEsModel.setHotScore(0L);
+            // 品牌信息
+            BrandEntity brand = brandService.getById(skuInfoEntity.getBrandId());
+            skuEsModel.setBrandName(brand.getName());
+            skuEsModel.setBrandImg(brand.getLogo());
+            // 分类信息
+            CategoryEntity category = categoryService.getById(skuInfoEntity.getSkuId());
+            skuEsModel.setCatalogName(category.getName());
+            //TODO 远程调用仓储服务，hasStock
+            //TODO 查询当前sku所有可以被用来检索的规格属性
+            return skuEsModel;
+        }).collect(Collectors.toList());
+        // 3、将skuEsModels发送给es进行保存：gulimall-search
     }
 
 }
