@@ -2,14 +2,16 @@ package com.atguigu.gulimall.ware.service.impl;
 
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.ware.feign.ProductFeignService;
+import com.atguigu.common.to.SkuHasStockTo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.atguigu.common.utils.PageUtils;
@@ -69,6 +71,28 @@ public class WareSkuServiceImpl extends ServiceImpl <WareSkuDao, WareSkuEntity> 
             baseMapper.insert(wareSkuEntity);
         }
 
+    }
+
+    @Override
+    public List <SkuHasStockTo> getSkusHasStock(List <Long> skuIds) {
+        // 方法一：批量查询符合库存条件的sku的id（批量相对于）
+        // Set<Long> skuIdSet = this.baseMapper.filterSkuIds(skuIds);
+        // List <SkuHasStockVo> hasStockVos = skuIds.stream().map(skuId -> {
+        //     SkuHasStockVo skuHasStockVo = new SkuHasStockVo();
+        //     skuHasStockVo.setSkuId(skuId);
+        //     skuHasStockVo.setHasStock(skuIdSet.contains(skuId));
+        //     return skuHasStockVo;
+        // }).collect(Collectors.toList());
+
+        // 方法二：每次查找一个SKU的库存情况
+        List <SkuHasStockTo> hasStockVos = skuIds.stream().map(skuId -> {
+            Long count = this.baseMapper.getSkuStock(skuId);
+            SkuHasStockTo skuHasStockTo = new SkuHasStockTo();
+            skuHasStockTo.setSkuId(skuId);
+            skuHasStockTo.setHasStock(count > 0);
+            return skuHasStockTo;
+        }).collect(Collectors.toList());
+        return hasStockVos;
     }
 
 }
