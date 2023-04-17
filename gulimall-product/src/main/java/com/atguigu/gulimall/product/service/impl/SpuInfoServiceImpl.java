@@ -19,8 +19,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -183,7 +185,7 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
             SkuReductionTo skuReductionTo = new SkuReductionTo();
             BeanUtils.copyProperties(sku, skuReductionTo);
             skuReductionTo.setSkuId(skuId);
-            if(skuReductionTo.getFullPrice().compareTo(BigDecimal.ZERO) > 0 || skuReductionTo.getFullCount().compareTo(0) > 0 || CollectionUtils.isNotEmpty(skuReductionTo.getMemberPrice())){
+            if (skuReductionTo.getFullPrice().compareTo(BigDecimal.ZERO) > 0 || skuReductionTo.getFullCount().compareTo(0) > 0 || CollectionUtils.isNotEmpty(skuReductionTo.getMemberPrice())) {
                 R r1 = couponFeignService.saveSkuReduction(skuReductionTo);
                 if (!r1.getCode().equals(0)) {
                     log.error("远程保存Sku优惠、满减、会员价格信息失败~");
@@ -201,21 +203,21 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
         String status = (String) params.get("status");
         String brandId = (String) params.get("brandId");
         String key = (String) params.get("key");
-        if(StringUtils.isNotEmpty(key)){
-            queryWrapper.and(wrapper->{
-                wrapper.eq("id",key).or().like("spu_name",key);
+        if (StringUtils.isNotEmpty(key)) {
+            queryWrapper.and(wrapper -> {
+                wrapper.eq("id", key).or().like("spu_name", key);
             });
         }
-        if(StringUtils.isNotEmpty(catelogId) && !catelogId.equals("0")){
-            log.info("hahhhh：{}",catelogId);
-            queryWrapper.eq("catalog_id",catelogId);
+        if (StringUtils.isNotEmpty(catelogId) && !catelogId.equals("0")) {
+            log.info("hahhhh：{}", catelogId);
+            queryWrapper.eq("catalog_id", catelogId);
         }
-        if(StringUtils.isNotEmpty(brandId) && !brandId.equals("0")){
-            log.info("hahhhh：{}",brandId);
-            queryWrapper.eq("brand_id",brandId);
+        if (StringUtils.isNotEmpty(brandId) && !brandId.equals("0")) {
+            log.info("hahhhh：{}", brandId);
+            queryWrapper.eq("brand_id", brandId);
         }
-        if(StringUtils.isNotEmpty(status)){
-            queryWrapper.eq("publish_status",status);
+        if (StringUtils.isNotEmpty(status)) {
+            queryWrapper.eq("publish_status", status);
         }
 
         IPage <SpuInfoEntity> page = this.page(
@@ -229,7 +231,21 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
     @Override
     public void up(Long spuId) {
         // 1、查询出所有Sku信息
-        List<SkuInfoEntity> skuInfoEntities = skuInfoService.getSkusBySpuId(spuId);
+        List <SkuInfoEntity> skuInfoEntities = skuInfoService.getSkusBySpuId(spuId);
+
+        // 查询当前sku所有可以被用来检索的规格属性
+        List <ProductAttrValueEntity> productAttrValueEntities = productAttrValueService.baseAttrListForSpu(spuId);
+        List <Long> attrIds = productAttrValueEntities.stream().map(ProductAttrValueEntity::getAttrId).collect(Collectors.toList());
+        List <Long> searchAttrIds = attrService.selectSearchAttrIds(attrIds);
+        Set <Long> idSet = new HashSet <>(searchAttrIds);
+        List <SkuEsModel.Attr> attrs = productAttrValueEntities.stream().filter(productAttrValueEntity -> {
+            return idSet.contains(productAttrValueEntity.getAttrId());
+        }).map(productAttrValueEntity -> {
+            SkuEsModel.Attr attr = new SkuEsModel.Attr();
+            BeanUtils.copyProperties(productAttrValueEntity, attr);
+            return attr;
+        }).collect(Collectors.toList());
+
         // 2、封装每个sku的信息
         List <SkuEsModel> skuEsModels = skuInfoEntities.stream().map(skuInfoEntity -> {
             SkuEsModel skuEsModel = new SkuEsModel();
@@ -244,8 +260,10 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
             // 分类信息
             CategoryEntity category = categoryService.getById(skuInfoEntity.getSkuId());
             skuEsModel.setCatalogName(category.getName());
+            // 属性信息
+            skuEsModel.setAttrs(attrs);
+
             //TODO 远程调用仓储服务，hasStock
-            //TODO 查询当前sku所有可以被用来检索的规格属性
             return skuEsModel;
         }).collect(Collectors.toList());
         // 3、将skuEsModels发送给es进行保存：gulimall-search

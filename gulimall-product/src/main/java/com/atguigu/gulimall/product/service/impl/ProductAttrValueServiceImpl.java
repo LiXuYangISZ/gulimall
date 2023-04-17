@@ -54,4 +54,11 @@ public class ProductAttrValueServiceImpl extends ServiceImpl<ProductAttrValueDao
         // 之前有 --> 现在也有   update
     }
 
+    @Override
+    public List <ProductAttrValueEntity> baseAttrListForSpu(Long spuId) {
+        LambdaQueryWrapper <ProductAttrValueEntity> queryWrapper = new LambdaQueryWrapper <>();
+        queryWrapper.eq(ProductAttrValueEntity::getSpuId,spuId);
+        return this.list(queryWrapper);
+    }
+
 }
