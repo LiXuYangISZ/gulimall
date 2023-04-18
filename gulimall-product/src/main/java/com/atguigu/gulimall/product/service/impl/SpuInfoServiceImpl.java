@@ -1,5 +1,6 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import com.atguigu.common.constant.product.PublishStatusEnum;
 import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.to.SkuReductionTo;
 import com.atguigu.common.to.SpuBoundsTo;
@@ -9,6 +10,7 @@ import com.atguigu.common.utils.Query;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.product.entity.*;
 import com.atguigu.gulimall.product.feign.CouponFeignService;
+import com.atguigu.gulimall.product.feign.SearchFeignService;
 import com.atguigu.gulimall.product.feign.WareFeignService;
 import com.atguigu.gulimall.product.service.*;
 import com.atguigu.gulimall.product.vo.product.*;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -67,6 +70,9 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
 
     @Autowired
     WareFeignService wareFeignService;
+
+    @Autowired
+    SearchFeignService searchFeignService;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -280,8 +286,15 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
             skuEsModel.setHasStock(finalStockMap == null ? true : finalStockMap.get(skuInfoEntity.getSkuId()));
             return skuEsModel;
         }).collect(Collectors.toList());
-
         // 3、将skuEsModels发送给es进行保存：gulimall-search
+        R r = searchFeignService.productStatusUp(skuEsModels);
+        if(r.getCode() == 0){
+            // 调用成功，修改当前spu的状态
+            baseMapper.updateSpuStatus(spuId, PublishStatusEnum.SPU_UP.getCode());
+        }else {
+            // TODO 调用失败，重复调用？（接口幂等性：重试机制）
+        }
+
     }
 
 }
