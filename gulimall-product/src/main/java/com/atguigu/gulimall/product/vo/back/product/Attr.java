@@ -1,7 +1,7 @@
 /**
   * Copyright 2023 bejson.com 
   */
-package com.atguigu.gulimall.product.vo.product;
+package com.atguigu.gulimall.product.vo.back.product;
 
 import lombok.Data;
 
@@ -12,8 +12,9 @@ import lombok.Data;
  * @website http://www.bejson.com/java2pojo/
  */
 @Data
-public class BaseAttrs {
+public class Attr {
+
     private Long attrId;
-    private String attrValues;
-    private Integer showDesc;
+    private String attrName;
+    private String attrValue;
 }

@@ -11,7 +11,7 @@ import com.atguigu.gulimall.product.entity.AttrEntity;
 import com.atguigu.gulimall.product.service.AttrAttrgroupRelationService;
 import com.atguigu.gulimall.product.service.AttrService;
 import com.atguigu.gulimall.product.service.CategoryService;
-import com.atguigu.gulimall.product.vo.AttrGroupWithAttrsVo;
+import com.atguigu.gulimall.product.vo.back.AttrGroupWithAttrsVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

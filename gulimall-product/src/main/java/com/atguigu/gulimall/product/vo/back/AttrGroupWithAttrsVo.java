@@ -1,20 +1,21 @@
-package com.atguigu.gulimall.product.vo;
+package com.atguigu.gulimall.product.vo.back;
 
-import com.baomidou.mybatisplus.annotation.TableId;
+import com.atguigu.gulimall.product.entity.AttrEntity;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @author lxy
  * @version 1.0
  * @Description
- * @date 2023/3/25 21:01
+ * @date 2023/4/2 15:59
  */
 @Data
-public class AttrGroupVo {
+public class AttrGroupWithAttrsVo {
     /**
      * 分组id
      */
-    @TableId
     private Long attrGroupId;
     /**
      * 组名
@@ -40,4 +41,8 @@ public class AttrGroupVo {
      * 分类的完整路径
      */
     private Long[] catelogPath;
+    /**
+     * 属性列表
+     */
+    private List <AttrEntity> attrs;
 }

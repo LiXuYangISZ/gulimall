@@ -3,6 +3,8 @@ package com.atguigu.gulimall.product.service.impl;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import com.atguigu.gulimall.product.service.CategoryBrandRelationService;
+import com.atguigu.gulimall.product.vo.front.Catelog2Vo;
+import com.atguigu.gulimall.product.vo.front.Catelog3Vo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -94,6 +96,34 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
         queryWrapper.eq(CategoryEntity::getParentCid,0);
         List <CategoryEntity> categoryEntities = this.list(queryWrapper);
         return categoryEntities;
+    }
+
+    /**
+     * 小窍门，如何知道这里使用Stream还是For循环呢，就看是否需要返回值&结果是否需要处理
+     * @return
+     */
+    @Override
+    public Map <String, List <Catelog2Vo>> getCatelogJson() {
+        // 1、获得一级分类
+        List <CategoryEntity> level1Categorys = getLevelOneCategorys();
+        Map <String, List <Catelog2Vo>> map = level1Categorys.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+            // 通过一级分类id，获得二级分类id的信息
+            List <CategoryEntity> level2Categorys = this.baseMapper.selectList(new LambdaQueryWrapper <CategoryEntity>().eq(CategoryEntity::getParentCid, v.getCatId()));
+
+            List <Catelog2Vo> catelog2Vos = level2Categorys.stream().map(level2 -> {
+
+                // 通过二级分类id，获得三级分类的信息
+                List <CategoryEntity> level3Categorys = this.baseMapper.selectList(new LambdaQueryWrapper <CategoryEntity>().eq(CategoryEntity::getParentCid, level2.getCatId()));
+                List <Catelog3Vo> catelog3Vos = level3Categorys.stream().map(level3 -> {
+                    Catelog3Vo catelog3Vo = new Catelog3Vo(level2.getCatId().toString(), level3.getCatId().toString(), level3.getName());
+                    return catelog3Vo;
+                }).collect(Collectors.toList());
+                Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), level2.getCatId().toString(), level2.getName(), catelog3Vos);
+                return catelog2Vo;
+            }).collect(Collectors.toList());
+            return catelog2Vos;
+        }));
+        return map;
     }
 
     /**

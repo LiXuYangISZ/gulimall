@@ -14,7 +14,7 @@ import com.atguigu.gulimall.product.feign.CouponFeignService;
 import com.atguigu.gulimall.product.feign.SearchFeignService;
 import com.atguigu.gulimall.product.feign.WareFeignService;
 import com.atguigu.gulimall.product.service.*;
-import com.atguigu.gulimall.product.vo.product.*;
+import com.atguigu.gulimall.product.vo.back.product.*;
 import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
@@ -24,7 +24,6 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.CountDownLatch;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;

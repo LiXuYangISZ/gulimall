@@ -1,9 +1,11 @@
 /**
   * Copyright 2023 bejson.com 
   */
-package com.atguigu.gulimall.product.vo.product;
+package com.atguigu.gulimall.product.vo.back.product;
 
 import lombok.Data;
+
+import java.math.BigDecimal;
 
 /**
  * Auto-generated: 2023-04-03 16:10:55
@@ -12,8 +14,8 @@ import lombok.Data;
  * @website http://www.bejson.com/java2pojo/
  */
 @Data
-public class Images {
+public class Bounds {
 
-    private String imgUrl;
-    private Integer defaultImg;
+    private BigDecimal buyBounds;
+    private BigDecimal growBounds;
 }

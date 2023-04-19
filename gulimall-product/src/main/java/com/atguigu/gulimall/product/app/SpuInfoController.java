@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.R;
-import com.atguigu.gulimall.product.vo.product.SpuSaveVo;
+import com.atguigu.gulimall.product.vo.back.product.SpuSaveVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,7 +1,7 @@
 package com.atguigu.gulimall.product.service;
 
 import com.atguigu.common.utils.PageUtils;
-import com.atguigu.gulimall.product.vo.product.SpuSaveVo;
+import com.atguigu.gulimall.product.vo.back.product.SpuSaveVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.atguigu.gulimall.product.entity.SpuInfoEntity;
 

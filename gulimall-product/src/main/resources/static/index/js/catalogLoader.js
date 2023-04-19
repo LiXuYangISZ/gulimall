@@ -1,3 +1,4 @@
+// 页面渲染完成调用此函数~
 $(function(){
     $.getJSON("index/json/catalog.json",function (data) {
 
