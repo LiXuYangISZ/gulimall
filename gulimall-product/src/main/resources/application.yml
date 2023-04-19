@@ -14,6 +14,8 @@ spring:
     jackson:
         date-format: yyyy-MM-dd HH:mm:ss #设置时间显示格式
         time-zone: GMT+8
+    thymeleaf:
+        cache: false
 
 mybatis-plus:
     mapper-locations: classpath:/mapper/**/*.xml #配置xml位置

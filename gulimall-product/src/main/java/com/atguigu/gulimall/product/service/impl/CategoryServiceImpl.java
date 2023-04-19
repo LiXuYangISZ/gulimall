@@ -3,6 +3,7 @@ package com.atguigu.gulimall.product.service.impl;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import com.atguigu.gulimall.product.service.CategoryBrandRelationService;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -85,6 +86,14 @@ public class CategoryServiceImpl extends ServiceImpl<CategoryDao, CategoryEntity
             categoryBrandRelationService.updateCategory(category.getCatId(),category.getName());
             // TODO 更新其他关联表
         }
+    }
+
+    @Override
+    public List <CategoryEntity> getLevelOneCategorys() {
+        LambdaQueryWrapper <CategoryEntity> queryWrapper = new LambdaQueryWrapper <>();
+        queryWrapper.eq(CategoryEntity::getParentCid,0);
+        List <CategoryEntity> categoryEntities = this.list(queryWrapper);
+        return categoryEntities;
     }
 
     /**
