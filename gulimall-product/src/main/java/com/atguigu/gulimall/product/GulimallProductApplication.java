@@ -46,6 +46,15 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  *  1）、编写异常处理类，使用@ControllerAdvice
  *  2）、使用@ExceptionHandler标注方法可以处理的异常
  *
+ * 5、模板引擎
+ *  1）、thymeleaf-starter 引入依赖，并关闭缓存
+ *  2）、静态资源都放在static文件夹下就可以按照路径直接访问
+ *  3）、页面都放在templates下，直接访问
+ *      原因：SpringBoot的自动配置机制，默认会找index作为欢迎页
+ *  4）、页面修改静态资源，不重启服务器实时更新
+ *      1）、引入dev-tools
+ *      2）、修改完静态页面 ctrl+shift+f9 自动编译当前页面。如果修改的是Java代码，推荐重启！！！
+ *
  */
 @EnableFeignClients(basePackages = "com.atguigu.gulimall.product.feign")
 @EnableDiscoveryClient
