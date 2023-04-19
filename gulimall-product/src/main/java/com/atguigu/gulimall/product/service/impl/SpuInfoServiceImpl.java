@@ -288,11 +288,11 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
         }).collect(Collectors.toList());
         // 3、将skuEsModels发送给es进行保存：gulimall-search
         R r = searchFeignService.productStatusUp(skuEsModels);
-        if(r.getCode() == 0){
+        if (r.getCode() == 0) {
             // 调用成功，修改当前spu的状态
             baseMapper.updateSpuStatus(spuId, PublishStatusEnum.SPU_UP.getCode());
-        }else {
-            // TODO 调用失败，重复调用？（接口幂等性：重试机制）
+        } else {
+            // TODO 调用失败，重复调用？（接口幂等性：重试机制）【实现：可以参考Feign的调用流程--->SearchFeignService】
         }
 
     }
