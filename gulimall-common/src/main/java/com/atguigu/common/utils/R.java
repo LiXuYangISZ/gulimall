@@ -8,6 +8,8 @@
 
 package com.atguigu.common.utils;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import org.apache.http.HttpStatus;
 
 import java.util.HashMap;
@@ -20,6 +22,30 @@ import java.util.Map;
  */
 public class R extends HashMap<String, Object> {
 	private static final long serialVersionUID = 1L;
+
+	/**
+	 * 如果是复杂类型，比如List<HashMap<xxx,xxx>>。可以通过类型先转JSON，然后JSON转所需类型
+	 * 场景：待补充...
+	 * @param typeReference
+	 * @param <T>
+	 * @return
+	 */
+	public <T> T getData(TypeReference<T> typeReference){
+		Object data = get("data");//默认会是map类型
+		String str = JSON.toJSONString(data);
+		T t = JSON.parseObject(str, typeReference);
+		return t;
+	}
+
+	/**
+	 *
+	 * @param data
+	 * @return
+	 */
+	public R setData(Object data){
+		put("data",data);
+		return this;
+	}
 	
 	public R() {
 		put("code", 0);

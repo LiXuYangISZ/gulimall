@@ -48,3 +48,4 @@ public static boolean isAllNotEmpty(String... args) {
 
 #### 项目存在的Bug
 1. 查询SPU商品有时候回报：Required Long parameter 'catId' is not present（具体原因待排查）
+2. 时间更新存在时差，比如上架时更新spu_info

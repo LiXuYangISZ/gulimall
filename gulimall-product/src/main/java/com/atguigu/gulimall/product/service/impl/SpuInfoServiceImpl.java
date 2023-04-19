@@ -1,5 +1,6 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.constant.product.PublishStatusEnum;
 import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.to.SkuReductionTo;
@@ -258,7 +259,8 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
         Map <Long, Boolean> stockMap = null;
         try {
             R r = wareFeignService.getSkusHasStock(skuIds);
-            List <SkuHasStockTo> skuHasStockTos = (List <SkuHasStockTo>) r.get("data");
+            TypeReference <List <SkuHasStockTo>> typeReference = new TypeReference <List <SkuHasStockTo>>(){};
+            List <SkuHasStockTo> skuHasStockTos = r.getData(typeReference);
             stockMap = skuHasStockTos.stream().collect(Collectors.toMap(SkuHasStockTo::getSkuId, SkuHasStockTo::getHasStock));
         } catch (Exception e) {
             log.error("库存服务查询异常:原因{}", e);
@@ -278,7 +280,7 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
             skuEsModel.setBrandName(brand.getName());
             skuEsModel.setBrandImg(brand.getLogo());
             // 2.3 分类信息
-            CategoryEntity category = categoryService.getById(skuInfoEntity.getSkuId());
+            CategoryEntity category = categoryService.getById(skuInfoEntity.getCatalogId());
             skuEsModel.setCatalogName(category.getName());
             // 2.4 属性信息
             skuEsModel.setAttrs(attrs);
