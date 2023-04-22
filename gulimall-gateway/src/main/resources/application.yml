@@ -36,7 +36,7 @@ spring:
         - id: gulimall-product #商品网关
           uri: lb://gulimall-product
           predicates:
-            - Path=/api/product/**
+            - Path=/api/product/**,/hello
           filters:
             - RewritePath=/api/(?<segment>.*), /$\{segment}
 
@@ -53,6 +53,11 @@ spring:
             - Path=/api/**
           filters: # 当predicates通过后，逐个执行filters，然后路由到目标URI
             - RewritePath=/api/(?<segment>.*), /renren-fast/$\{segment}
+
+        - id: gulimall_host_route #域名访问
+          uri: lb://gulimall-product
+          predicates:
+            - Host=**.gulimall.com
 
 
 ## 断言              前端路径                                   经过uri后                                 经过过滤器后（最终跳转的uri）
