@@ -107,18 +107,47 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
      * 再进行Stream操作时，我们没有进行判断是否为空，原因在于我们使用了MP封装的，如果找不到则为一个空集合
      * TODO 下面这个方法的实现嵌套层数过多、嵌套中查库。可以进行优化：先批量把所有的数据查出，存到Map中，然后进行封装~【 具体可参考谷粒学院的分类下拉列表功能】
      */
+    // @Override
+    // public Map <String, List <Catelog2Vo>> getCatelogJson() {
+    //     // 1、获得一级分类
+    //     List <CategoryEntity> level1Categorys = getLevelOneCategorys();
+    //     Map <String, List <Catelog2Vo>> map = level1Categorys.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
+    //         // 通过一级分类id，获得二级分类id的信息
+    //         List <CategoryEntity> level2Categorys = this.baseMapper.selectList(new LambdaQueryWrapper <CategoryEntity>().eq(CategoryEntity::getParentCid, v.getCatId()));
+    //
+    //         List <Catelog2Vo> catelog2Vos = level2Categorys.stream().map(level2 -> {
+    //
+    //             // 通过二级分类id，获得三级分类的信息
+    //             List <CategoryEntity> level3Categorys = this.baseMapper.selectList(new LambdaQueryWrapper <CategoryEntity>().eq(CategoryEntity::getParentCid, level2.getCatId()));
+    //             List <Catelog3Vo> catelog3Vos = level3Categorys.stream().map(level3 -> {
+    //                 Catelog3Vo catelog3Vo = new Catelog3Vo(level2.getCatId().toString(), level3.getCatId().toString(), level3.getName());
+    //                 return catelog3Vo;
+    //             }).collect(Collectors.toList());
+    //             Catelog2Vo catelog2Vo = new Catelog2Vo(v.getCatId().toString(), level2.getCatId().toString(), level2.getName(), catelog3Vos);
+    //             return catelog2Vo;
+    //         }).collect(Collectors.toList());
+    //         return catelog2Vos;
+    //     }));
+    //     return map;
+    // }
+
+    /**
+     * 获得三级分类JSON
+     * @return
+     */
     @Override
     public Map <String, List <Catelog2Vo>> getCatelogJson() {
+        List <CategoryEntity> categoryEntities = this.baseMapper.selectList(null);
         // 1、获得一级分类
-        List <CategoryEntity> level1Categorys = getLevelOneCategorys();
+        List <CategoryEntity> level1Categorys = getCategorysByParentCid(categoryEntities,0L);
         Map <String, List <Catelog2Vo>> map = level1Categorys.stream().collect(Collectors.toMap(k -> k.getCatId().toString(), v -> {
             // 通过一级分类id，获得二级分类id的信息
-            List <CategoryEntity> level2Categorys = this.baseMapper.selectList(new LambdaQueryWrapper <CategoryEntity>().eq(CategoryEntity::getParentCid, v.getCatId()));
+            List <CategoryEntity> level2Categorys = getCategorysByParentCid(categoryEntities,v.getCatId());
 
             List <Catelog2Vo> catelog2Vos = level2Categorys.stream().map(level2 -> {
 
                 // 通过二级分类id，获得三级分类的信息
-                List <CategoryEntity> level3Categorys = this.baseMapper.selectList(new LambdaQueryWrapper <CategoryEntity>().eq(CategoryEntity::getParentCid, level2.getCatId()));
+                List <CategoryEntity> level3Categorys = getCategorysByParentCid(categoryEntities,level2.getCatId());
                 List <Catelog3Vo> catelog3Vos = level3Categorys.stream().map(level3 -> {
                     Catelog3Vo catelog3Vo = new Catelog3Vo(level2.getCatId().toString(), level3.getCatId().toString(), level3.getName());
                     return catelog3Vo;
@@ -129,6 +158,16 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
             return catelog2Vos;
         }));
         return map;
+    }
+
+    /**
+     * 根据父分类id获取所有
+     * @param categoryEntities
+     * @param parentCid
+     * @return
+     */
+    private List <CategoryEntity> getCategorysByParentCid(List <CategoryEntity> categoryEntities,Long parentCid) {
+        return categoryEntities.stream().filter(categoryEntity -> categoryEntity.getParentCid().equals(parentCid)).collect(Collectors.toList());
     }
 
     /**
