@@ -1,12 +1,16 @@
 package com.atguigu.gulimall.product.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
 import com.atguigu.gulimall.product.service.CategoryBrandRelationService;
 import com.atguigu.gulimall.product.vo.front.Catelog2Vo;
 import com.atguigu.gulimall.product.vo.front.Catelog3Vo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -23,7 +27,6 @@ import com.atguigu.gulimall.product.dao.CategoryDao;
 import com.atguigu.gulimall.product.entity.CategoryEntity;
 import com.atguigu.gulimall.product.service.CategoryService;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 
 @Service("categoryService")
@@ -31,6 +34,9 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
 
     @Autowired
     CategoryBrandRelationService categoryBrandRelationService;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -132,11 +138,43 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     // }
 
     /**
-     * 获得三级分类JSON
+     * TODO 产生堆外内存溢出：OutOfDirectMemoryError
+     * 1）、SpringBoot2.0以后默认使用lettuce作为操作redis的客户端，他使用Netty进行网络通信
+     * 2）、lettuce的bug导致对外内存溢出。例：-Xmx300m netty如果没有指定堆外内存，默认使用-Xmx300m
+     *     可以通过-Dio.netty.maxDirectMemory只去调大堆外内存
+     * 解决方案：不能使用-Dio.netty.maxDirectMemory只去调大堆外内存，因为这样只是延迟了错误的发生。
+     *          1）、升级lettuce客户端【上线后来通过日志查看解决】     2）、切换使用jedis  √
+     * 补充：lettuce、jedis是操作redis的底层客户端。RedisTemplate是Spring再次封装的产物~
+     *
+     * 获取三级分类JSON
      * @return
      */
     @Override
     public Map <String, List <Catelog2Vo>> getCatelogJson() {
+        // 给缓存中放JSON字符串，查询拿出的JSON字符串，逆转为可用的对象类型【序列化与反序列化】
+        // 1.加入缓存逻辑，缓存中的是JSON字符串
+        // JSON 语言的优点：跨平台
+        String catelogJSON = stringRedisTemplate.opsForValue().get("catelogJSON");
+        // 加上缓存逻辑
+        if(StringUtils.isBlank(catelogJSON)){
+            // 2.缓存中没有，查询数据库
+            Map <String, List <Catelog2Vo>> catelogJsonFromDB = getCatelogJsonFromDB();
+            // 3.查到的数据再放入缓存，将对象转为JSON放在缓存中
+            String json = JSON.toJSONString(catelogJsonFromDB);
+            stringRedisTemplate.opsForValue().set("catelogJSON",json);
+            return catelogJsonFromDB;
+        }
+        // 4.转为我们指定的对象
+        Map <String, List <Catelog2Vo>> catelogMap = JSON.parseObject(catelogJSON, new TypeReference <Map <String, List <Catelog2Vo>>>() {
+        });
+        return catelogMap;
+    }
+
+    /**
+     * 获得三级分类JSON从数据库
+     * @return
+     */
+    public Map <String, List <Catelog2Vo>> getCatelogJsonFromDB() {
         List <CategoryEntity> categoryEntities = this.baseMapper.selectList(null);
         // 1、获得一级分类
         List <CategoryEntity> level1Categorys = getCategorysByParentCid(categoryEntities,0L);
