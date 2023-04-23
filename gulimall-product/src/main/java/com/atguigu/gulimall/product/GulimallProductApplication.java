@@ -55,6 +55,10 @@ import org.springframework.cloud.openfeign.EnableFeignClients;
  *      1）、引入dev-tools
  *      2）、修改完静态页面 ctrl+shift+f9 自动编译当前页面。如果修改的是Java代码，推荐重启！！！
  *
+ * 6、整合Redis
+ *  1)、引入data-redis-starter
+ *  2)、简单配置Redis的host等信息
+ *  3）、使用SpringBoot自动配置好的StringRedisTemplate来操作Redis
  */
 @EnableFeignClients(basePackages = "com.atguigu.gulimall.product.feign")
 @EnableDiscoveryClient

@@ -9,10 +9,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -24,6 +27,9 @@ public class GulimallProductApplicationTests {
 
     @Autowired
     CategoryService categoryService;
+
+    @Autowired
+    StringRedisTemplate stringRedisTemplate;
 
     @Test
     public void contextLoads() {
@@ -110,5 +116,15 @@ public class GulimallProductApplicationTests {
     //         }
     //     }
     // }
+
+    @Test
+    public void testStringRedisTemplate(){
+        ValueOperations <String, String> ops = stringRedisTemplate.opsForValue();
+        ops.set("hello","world"+ UUID.randomUUID());
+        String str = ops.get("hello");
+        System.out.println("结果："+str);
+    }
+
+
 }
 
