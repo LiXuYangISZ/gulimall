@@ -9,14 +9,15 @@ import com.atguigu.gulimall.product.vo.front.Catelog2Vo;
 import com.atguigu.gulimall.product.vo.front.Catelog3Vo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.commons.lang.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -37,6 +38,9 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+
+    @Autowired
+    RedissonClient redisson;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -109,6 +113,10 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     }
 
     /**
+     *
+     * 获取分类的JSON数据
+     * 缺点：多次循环查库造成效率太低
+     *
      * 小窍门，如何知道这里使用Stream还是For循环呢，就看是否需要返回值&结果是否需要处理
      * 再进行Stream操作时，我们没有进行判断是否为空，原因在于我们使用了MP封装的，如果找不到则为一个空集合
      * TODO 下面这个方法的实现嵌套层数过多、嵌套中查库。可以进行优化：先批量把所有的数据查出，存到Map中，然后进行封装~【 具体可参考谷粒学院的分类下拉列表功能】
@@ -138,6 +146,9 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     // }
 
     /**
+     *
+     * 获取三级分类JSON【批量查询+Redis缓存】
+     *
      * TODO 产生堆外内存溢出：OutOfDirectMemoryError
      * 1）、SpringBoot2.0以后默认使用lettuce作为操作redis的客户端，他使用Netty进行网络通信
      * 2）、lettuce的bug导致对外内存溢出。例：-Xmx300m netty如果没有指定堆外内存，默认使用-Xmx300m
@@ -146,7 +157,14 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
      *          1）、升级lettuce客户端【上线后来通过日志查看解决】     2）、切换使用jedis  √
      * 补充：lettuce、jedis是操作redis的底层客户端。RedisTemplate是Spring再次封装的产物~
      *
-     * 获取三级分类JSON
+     *
+     * 使用缓存后需要解决的问题：
+     *  1、空结果缓存：解决缓存穿透
+     *  2、设置过期时间（加随机值）：解决缓存雪崩
+     *  3、加锁：解决缓存击穿
+     *
+     *
+     *
      * @return
      */
     @Override
@@ -158,7 +176,7 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
         // 加上缓存逻辑
         if(StringUtils.isBlank(catelogJSON)){
             // 2.缓存中没有，查询数据库
-            Map <String, List <Catelog2Vo>> catelogJsonFromDB = getCatelogJsonFromDB();
+            Map <String, List <Catelog2Vo>> catelogJsonFromDB = getCatalogJsonFromDbWithRedission();
             // 3.查到的数据再放入缓存，将对象转为JSON放在缓存中
             String json = JSON.toJSONString(catelogJsonFromDB);
             stringRedisTemplate.opsForValue().set("catelogJSON",json);
@@ -168,6 +186,63 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
         Map <String, List <Catelog2Vo>> catelogMap = JSON.parseObject(catelogJSON, new TypeReference <Map <String, List <Catelog2Vo>>>() {
         });
         return catelogMap;
+    }
+
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedission() {
+        RLock lock = redisson.getLock("CatalogJson-lock");
+        lock.lock();
+        Map<String, List<Catelog2Vo>> dataFromDb;
+        try {
+            dataFromDb = getCatelogJsonFromDB();
+        }finally {
+            lock.unlock();
+        }
+        return dataFromDb;
+    }
+
+    /**
+     *  手动实现分布式锁，查询分类数据
+     * @return
+     */
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedisLock() {
+
+
+        //1、占分布式锁。去redis占坑
+        String uuid = UUID.randomUUID().toString();
+        Boolean lock = stringRedisTemplate.opsForValue().setIfAbsent("lock", uuid, 300, TimeUnit.SECONDS);
+        if (lock) {
+            System.out.println("获取分布式锁成功...");
+            //加锁成功... 执行业务
+            //2、设置过期时间，必须和加锁是同步的，原子的
+            //redisTemplate.expire("lock",30,TimeUnit.SECONDS);
+            Map<String, List<Catelog2Vo>> dataFromDb;
+            try {
+                dataFromDb = getCatelogJsonFromDB();
+            } finally {
+                String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+                //删除锁
+                Long lock1 = stringRedisTemplate.execute(new DefaultRedisScript <Long>(script, Long.class)
+                        , Arrays.asList("lock"), uuid);
+            }
+
+            //获取值对比+对比成功删除=原子操作  lua脚本解锁
+//            String lockValue = redisTemplate.opsForValue().get("lock");
+//            if(uuid.equals(lockValue)){
+//                //删除我自己的锁
+//                redisTemplate.delete("lock");//删除锁
+//            }
+            return dataFromDb;
+        } else {
+            //加锁失败...重试。synchronized ()
+            //休眠100ms重试
+            System.out.println("获取分布式锁失败...等待重试");
+            try {
+                Thread.sleep(200);
+            } catch (Exception e) {
+
+            }
+            return getCatalogJsonFromDbWithRedisLock();//自旋的方式
+        }
     }
 
     /**

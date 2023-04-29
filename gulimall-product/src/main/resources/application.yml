@@ -32,7 +32,7 @@ mybatis-plus:
 #        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
 server:
-    port: 10000
+    port: 10001
 logging:
     level:
         com.atguigu.gulimall: error
