@@ -140,13 +140,18 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
      *              自定义RedisCacheConfiguration即可
      * 4、Spring-Cache的不足；
      *      1）、读模式：
-     *          缓存穿透：查询一个null数据。解决：缓存空数据；ache-null-values=true
-     *          缓存击穿：大量并发进来同时查询一个正好过期的数据。解决：加锁；？默认是无加锁的;sync = true（加锁，解决击穿）
-     *          缓存雪崩：大量的key同时过期。解决：加随机时间。加上过期时间。：spring.cache.redis.time-to-live=3600000
+     *          缓存穿透：查询一个null数据。解决：缓存空数据；spring.cache.redis.cache-null-values=true
+     *          缓存击穿：大量并发进来同时查询一个正好过期的数据。解决：加锁；？ 但是SpringCache 默认是无加锁的; 可以使用sync = true 开启本地锁，解决击穿！！
+     *              思考：为啥加本地锁就可以解决缓存击穿呢？
+     *              部署生产服务器，比如：一个服务5台服务器，加本地锁，最多只有5个人同时拿到锁，即使他们同时数据库，也没有风险，即使1000台，肯定也是ok的。
+     *              这里只是查数据，没必要加分布式锁，只要保证没有大量的请求同时查询数据库就行了。
+     *          缓存雪崩：大量的key同时过期。解决：加随机时间。加上过期时间 ：spring.cache.redis.time-to-live=3600000【我们这里只设置了过期时间，因为这个key本身设置的时候都是随机的，所以如果还有个随机时间就可能弄巧成拙~所以无需设置那么多】
      *      2）、写模式：（缓存与数据库一致）
      *          1）、读写加锁。
      *          2）、引入Canal，感知到MySQL的更新去更新数据库
      *          3）、读多写多，直接去数据库查询就行
+     *      注意：SpringCache只有查数据可以开本地锁，其他操作都没有加锁；
+     *           SpringCache帮用户解决了读的三大问题。写模式下的数据一致性交给用户自己处理了！！！
      *    总结：
      *      常规数据（读多写少，即时性，一致性要求不高的数据）；完全可以使用Spring-Cache；写模式（只要缓存的数据有过期时间就足够了）
      *      特殊数据：特殊设计
@@ -157,7 +162,7 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
      *
      * @return
      */
-    @Cacheable(value = {"category"},key = "#root.method.name")//失效模式
+    @Cacheable(value = {"category"},key = "#root.method.name",sync = true)//失效模式
     // @CachePut//双写模式
     @Override
     public List <CategoryEntity> getLevelOneCategorys() {
@@ -204,19 +209,13 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
 
     /**
      * 获取三级分类JSON【批量查询+Redis缓存+SpringCache】
+     * sync = true 这里咱们就无须使用分布式锁了，直接用自带的本地锁就可以了。
      * @return
      */
-    @Cacheable(value = "category",key = "#root.methodName")
+    @Cacheable(value = "category",key = "#root.methodName",sync = true)
     @Override
     public Map <String, List <Catelog2Vo>> getCatelogJson() {
-        RLock lock = redisson.getLock("CatalogJson-lock");
-        lock.lock();
-        Map<String, List<Catelog2Vo>> dataFromDb;
-        try {
-            dataFromDb = getCatelogJsonFromDB();
-        }finally {
-            lock.unlock();
-        }
+        Map<String, List<Catelog2Vo>> dataFromDb = getCatelogJsonFromDB();
         return dataFromDb;
     }
 
