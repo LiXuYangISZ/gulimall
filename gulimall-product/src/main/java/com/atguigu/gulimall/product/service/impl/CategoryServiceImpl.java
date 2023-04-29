@@ -12,7 +12,10 @@ import org.apache.commons.lang.StringUtils;
 import org.redisson.api.RLock;
 import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
@@ -93,6 +96,21 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
         return paths.toArray(new Long[paths.size()]);
     }
 
+    /**
+     * 级联更新所有关联的数据
+     * @CacheEvict：失效模式
+     * 1、同时进行多种缓存操作 @Caching
+     * 2、指定删除某个分区下的所有数据 @CacheEvict(value = "category",allEntries = true)
+     * 规定：存储同一类型的数据，都可以指定成同一个分区。分区名默认就是缓存的前缀  category:key
+     * @param category
+     *
+     */
+
+    // @Caching(evict = {
+    //         @CacheEvict(value = "category",key = "'getLevelOneCategorys'") ,
+    //         @CacheEvict(value = "category",key = "'getCatelogJson'")
+    // })
+    @CacheEvict(value = "category",allEntries = true)
     @Transactional
     @Override
     public void updateDetails(CategoryEntity category) {
@@ -139,7 +157,8 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
      *
      * @return
      */
-    @Cacheable(value = {"category"},key = "#root.method.name")
+    @Cacheable(value = {"category"},key = "#root.method.name")//失效模式
+    // @CachePut//双写模式
     @Override
     public List <CategoryEntity> getLevelOneCategorys() {
         long l = System.currentTimeMillis();
@@ -184,6 +203,24 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     // }
 
     /**
+     * 获取三级分类JSON【批量查询+Redis缓存+SpringCache】
+     * @return
+     */
+    @Cacheable(value = "category",key = "#root.methodName")
+    @Override
+    public Map <String, List <Catelog2Vo>> getCatelogJson() {
+        RLock lock = redisson.getLock("CatalogJson-lock");
+        lock.lock();
+        Map<String, List<Catelog2Vo>> dataFromDb;
+        try {
+            dataFromDb = getCatelogJsonFromDB();
+        }finally {
+            lock.unlock();
+        }
+        return dataFromDb;
+    }
+
+    /**
      *
      * 获取三级分类JSON【批量查询+Redis缓存】
      *
@@ -198,15 +235,15 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
      *
      * 使用缓存后需要解决的问题：
      *  1、空结果缓存：解决缓存穿透
-     *  2、设置过期时间（加随机值）：解决缓存雪崩
-     *  3、加锁：解决缓存击穿
+     *  2、设置随机过期时间：解决缓存雪崩
+     *  3、加锁【互斥锁/读写锁】：解决缓存击穿
      *
      *
      *
      * @return
      */
-    @Override
-    public Map <String, List <Catelog2Vo>> getCatelogJson() {
+    // @Override
+    public Map <String, List <Catelog2Vo>> getCatelogJson2() {
         // 给缓存中放JSON字符串，查询拿出的JSON字符串，逆转为可用的对象类型【序列化与反序列化】
         // 1.加入缓存逻辑，缓存中的是JSON字符串
         // JSON 语言的优点：跨平台
