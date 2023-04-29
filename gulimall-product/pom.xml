@@ -70,6 +70,11 @@
             <artifactId>redisson</artifactId>
             <version>3.13.6</version>
         </dependency>
+        <!--SpringCache-->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
         <!--<dependency>-->
         <!--    <groupId>com.aliyun.oss</groupId>-->
         <!--    <artifactId>aliyun-sdk-oss</artifactId>-->
