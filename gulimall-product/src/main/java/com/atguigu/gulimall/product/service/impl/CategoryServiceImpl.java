@@ -214,10 +214,7 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
         // 加上缓存逻辑
         if(StringUtils.isBlank(catelogJSON)){
             // 2.缓存中没有，查询数据库
-            Map <String, List <Catelog2Vo>> catelogJsonFromDB = getCatalogJsonFromDbWithRedission();
-            // 3.查到的数据再放入缓存，将对象转为JSON放在缓存中
-            String json = JSON.toJSONString(catelogJsonFromDB);
-            stringRedisTemplate.opsForValue().set("catelogJSON",json);
+            Map <String, List <Catelog2Vo>> catelogJsonFromDB = getCatalogJsonFromDbWithRedissonLock();
             return catelogJsonFromDB;
         }
         // 4.转为我们指定的对象
@@ -227,13 +224,16 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     }
 
     /**
-     * 缓存里面的数据如何和数据库保持一致
-     * 缓存数据一致性
+     *
+     * 获取数据库中的分类JSON【Redisson互斥锁】
+     * 注意：这里使用读写锁也是可以的。但是咱们这里没有读操作，不需要读锁。如果使用读写锁，加的也是写锁。综合考虑还是互斥锁效果好点~
+     *      读写锁一般适合与读操作>写操作，读吞吐量要求很高的场景
+     * 缓存里面的数据如何和数据库保持一致？
      * 1）、双写模式
-     * 2）、失效模式
+     * 2）、失效模式  √
      * @return
      */
-    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedission() {
+    public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedissonLock() {
         // 锁的名字。锁的粒度，越细越快
         // 锁的粒度：具体缓存的是某个数据，n-号商品：product-11-lock product-12-lock 和product-lock相比，前者的粒度更小，速度会更快~
         RLock lock = redisson.getLock("CatalogJson-lock");
@@ -241,6 +241,9 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
         Map<String, List<Catelog2Vo>> dataFromDb;
         try {
             dataFromDb = getCatelogJsonFromDB();
+            // 查到的数据再放入缓存，将对象转为JSON放在缓存中
+            String json = JSON.toJSONString(dataFromDb);
+            stringRedisTemplate.opsForValue().set("catelogJSON",json);
         }finally {
             lock.unlock();
         }
@@ -248,7 +251,7 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     }
 
     /**
-     *  手动实现分布式锁，查询分类数据
+     *  获取数据库中的分类JSON【手动实现的分布式锁】
      * @return
      */
     public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithRedisLock() {
@@ -265,36 +268,39 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
             Map<String, List<Catelog2Vo>> dataFromDb;
             try {
                 dataFromDb = getCatelogJsonFromDB();
+                // 查到的数据再放入缓存，将对象转为JSON放在缓存中
+                String json = JSON.toJSONString(dataFromDb);
+                stringRedisTemplate.opsForValue().set("catelogJSON",json);
             } finally {
+                //获取值对比+对比成功删除=原子操作 ==> lua脚本解锁
                 String script = "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
                 //删除锁
-                Long lock1 = stringRedisTemplate.execute(new DefaultRedisScript <Long>(script, Long.class)
+                Long flag = stringRedisTemplate.execute(new DefaultRedisScript <Long>(script, Long.class)
                         , Arrays.asList("lock"), uuid);
             }
-
-            //获取值对比+对比成功删除=原子操作  lua脚本解锁
-//            String lockValue = redisTemplate.opsForValue().get("lock");
-//            我自己的锁UUID肯定知道哇
-//            if(uuid.equals(lockValue)){
-//                //删除我自己的锁
-//                redisTemplate.delete("lock");//删除锁
-//            }
+           // // 防止执行业务时间超时，释放错其他人的锁
+           // String lockValue = redisTemplate.opsForValue().get("lock");
+           // // 我自己的锁UUID肯定知道哇
+           // if(uuid.equals(lockValue)){
+           //     //删除我自己的锁
+           //     redisTemplate.delete("lock");
+           // }
             return dataFromDb;
         } else {
-            //加锁失败...重试。synchronized ()
-            //休眠100ms重试
+            //加锁失败...休眠100ms重试。模仿synchronized ()
             System.out.println("获取分布式锁失败...等待重试");
             try {
                 Thread.sleep(200);
             } catch (Exception e) {
 
             }
-            return getCatalogJsonFromDbWithRedisLock();//自旋的方式
+            //自旋重试
+            return getCatalogJsonFromDbWithRedisLock();
         }
     }
 
     /**
-     * 从数据库查询并封装分类数据【本地锁】
+     * 获取数据库中的分类JSON【本地锁】
      * @return
      */
     public Map<String, List<Catelog2Vo>> getCatalogJsonFromDbWithLocalLock() {
@@ -319,7 +325,7 @@ public class CategoryServiceImpl extends ServiceImpl <CategoryDao, CategoryEntit
     }
 
     /**
-     * 获得三级分类JSON从数据库
+     * 获取数据库中的分类JSON【无锁】
      * @return
      */
     public Map <String, List <Catelog2Vo>> getCatelogJsonFromDB() {

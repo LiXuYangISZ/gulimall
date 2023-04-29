@@ -20,6 +20,14 @@ spring:
     redis:
         host: 192.168.174.128
         port: 6379
+        # TODO 配置缓存的随机过期时间【解决缓存雪崩问题】 配置仍需查阅文档，目前不生效~
+#        jedis:
+#            pool:
+#                time-between-eviction-runs: 6000000 #缓存策略扫描频率[每1h清除一下过期缓存]
+#        random-cache-timeout: true  #开启随机缓存时间
+#        cache-expire-time:
+#            minimum: 86400   #最小缓存过期时间
+#            maximum: 172800 #最大缓存过期时间
     # 配置缓存类型
     cache:
         type: redis
