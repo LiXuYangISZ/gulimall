@@ -29,9 +29,9 @@ public class SearchParam {
      */
     private String sort;
     /**
-     * 是否显示有货
+     * 是否显示有货【0-无库存，1-有库存】,默认都是1
      */
-    private Integer hasStock;
+    private Integer hasStock = 1;
     /**
      * 价格区间查询
      */
