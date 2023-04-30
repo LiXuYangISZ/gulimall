@@ -15,7 +15,7 @@ spring:
         date-format: yyyy-MM-dd HH:mm:ss #设置时间显示格式
         time-zone: GMT+8
     thymeleaf:
-        cache: true
+        cache: false
     # 配置redis
     redis:
         host: 192.168.174.128
