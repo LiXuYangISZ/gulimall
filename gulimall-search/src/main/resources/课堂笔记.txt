@@ -1,0 +1,368 @@
+GET _search
+{
+  "query": {
+    "match_all": {}
+  }
+}
+
+
+## bool条件是有得分的 filter里面是没有的。
+
+GET product/_search
+{
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match": {
+            "skuTitle": "手机"
+          }
+        }
+      ],
+      "filter": [
+        {
+          "term": {
+            "catalogId": "225"
+          }
+        },
+        {
+          "terms": {
+            "brandId": [
+              "5",
+              "10"
+            ]
+          }
+        },
+        {
+          "nested": {
+            "path": "attrs",
+            "query": {
+              "bool": {
+                "must": [
+                  {
+                    "term": {
+                      "attrs.attrId": {
+                        "value": "16"
+                      }
+                    }
+                  },
+                  {
+                    "terms": {
+                      "attrs.attrValue": [
+                        "麒麟9000"
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "term": {
+            "hasStock": {
+              "value": "true"
+            }
+          }
+        },
+        {
+          "range": {
+            "skuPrice": {
+              "gte": 20000,
+              "lte": 25000
+            }
+          }
+        }
+      ]
+    }
+  },
+  "sort": [
+    {
+      "skuPrice": {
+        "order": "desc"
+      }
+    }
+  ],
+  "from": 0,
+  "size": 1,
+  "highlight": {
+    "fields": {"skuTitle": {}},
+    "pre_tags": "<b sytel='color:red'>",
+    "post_tags": "</b>"
+  },
+    "aggs": {
+    "brand_agg": {
+      "terms": {
+        "field": "brandId",
+        "size": 10
+      },
+      "aggs": {
+        "brand_name_agg": {
+          "terms": {
+            "field": "brandName",
+            "size": 10
+          }
+        },
+        "brand_img_agg": {
+          "terms": {
+            "field": "brandImg",
+            "size": 10
+          }
+        }
+      }
+    },
+    "catelog_agg": {
+      "terms": {
+        "field": "catalogId",
+        "size": 10
+      },
+      "aggs": {
+        "catelog_name_agg": {
+          "terms": {
+            "field": "catalogName",
+            "size": 10
+          }
+        }
+      }
+    },
+    "attr_agg": {
+      "nested": {
+        "path": "attrs"
+      },
+      "aggs": {
+        "attr_id_agg": {
+          "terms": {
+            "field": "attrs.attrId",
+            "size": 10
+          },
+          "aggs": {
+            "attr_name_agg": {
+              "terms": {
+                "field": "attrs.attrName",
+                "size": 10
+              }
+            },
+            "attr_value_agg":{
+              "terms": {
+                "field": "attrs.attrValue",
+                "size": 10
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+# 模糊匹配
+# 过滤（按照属性、分类、品牌、价格区间、库存）
+# 排序
+# 分页
+# 高亮
+# 聚合分析
+
+GET gulimall_product/_search
+{
+  "query": {
+    "term": {
+      "brandId": {
+        "value": "5"
+      }
+    }
+  },
+  "aggs": {
+    "brand_agg": {
+      "terms": {
+        "field": "brandId",
+        "size": 10
+      },
+      "aggs": {
+        "brand_name_agg": {
+          "terms": {
+            "field": "brandName",
+            "size": 10
+          }
+        },
+        "brand_img_agg": {
+          "terms": {
+            "field": "brandImg",
+            "size": 10
+          }
+        }
+      }
+    },
+    "catelog_agg": {
+      "terms": {
+        "field": "catalogId",
+        "size": 10
+      },
+      "aggs": {
+        "catelog_name_agg": {
+          "terms": {
+            "field": "catalogName",
+            "size": 10
+          }
+        }
+      }
+    },
+    "attr_agg": {
+      "nested": {
+        "path": "attrs"
+      },
+      "aggs": {
+        "attr_id_agg": {
+          "terms": {
+            "field": "attrs.attrId",
+            "size": 10
+          },
+          "aggs": {
+            "attr_name_agg": {
+              "terms": {
+                "field": "attrs.attrName",
+                "size": 10
+              }
+            },
+            "attr_value_agg":{
+              "terms": {
+                "field": "attrs.attrValue",
+                "size": 10
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "from": 0,
+  "size": 20
+}
+
+
+## 修改doc_values 为true
+GET product/_mapping
+
+
+# 新映射
+PUT gulimall_product
+{
+  "mappings": {
+    "properties": {
+      "attrs": {
+        "type": "nested",
+        "properties": {
+          "attrId": {
+            "type": "long"
+          },
+          "attrName": {
+            "type": "keyword"
+          },
+          "attrValue": {
+            "type": "keyword"
+          }
+        }
+      },
+      "brandId": {
+        "type": "long"
+      },
+      "brandImg": {
+        "type": "keyword"
+      },
+      "brandName": {
+        "type": "keyword"
+      },
+      "catalogId": {
+        "type": "long"
+      },
+      "catalogName": {
+        "type": "keyword"
+      },
+      "hasStock": {
+        "type": "boolean"
+      },
+      "hotScore": {
+        "type": "long"
+      },
+      "saleCount": {
+        "type": "long"
+      },
+      "skuId": {
+        "type": "long"
+      },
+      "skuImg": {
+        "type": "keyword"
+      },
+      "skuPrice": {
+        "type": "keyword"
+      },
+      "skuTitle": {
+        "type": "text",
+        "analyzer": "ik_smart"
+      },
+      "spuId": {
+        "type": "keyword"
+      }
+    }
+  }
+}
+
+GET gulimall_product/_search
+
+#迁移数据
+
+POST _reindex
+{
+  "source": {
+    "index": "product"
+  },
+  "dest": {
+    "index": "gulimall_product"
+  }
+}
+
+
+
+
+
+
+
+GET /_cat/indices
+GET /_cat/health
+
+
+
+
+
+
+
+# 解除所有索引的只读锁定
+PUT /_all/_settings
+{"index.blocks.read_only_allow_delete": null}
+# 使用通配符批量解除锁定
+PUT /auth-server-prd*/_settings?pretty
+{
+  "index.blocks.read_only_allow_delete": null
+}
+
+PUT /gulimall_product/_settings
+{
+  "index.blocks.read_only_allow_delete": true
+}
+
+PUT /gulimall_product/_settings?pretty
+{
+  "index.blocks.read_only_allow_delete": null
+}
+
+
+GET _cluster/health?pretty&human
+
+
+# 查看磁盘占用情况
+GET _cat/nodes?v&h=name,ip,disk.total,disk.used,disk.avail,disk.used_percent
+
+# 查看分区情况
+GET _cat/shards
+
+# 查看节点情况
+GET _nodes/stats
