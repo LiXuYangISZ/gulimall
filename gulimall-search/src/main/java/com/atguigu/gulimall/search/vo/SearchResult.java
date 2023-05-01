@@ -46,7 +46,7 @@ public class SearchResult {
      * 品牌VO
      */
     @Data
-    private static class BrandVo{
+    public static class BrandVo{
         /**
          * 品牌id
          */
@@ -65,7 +65,7 @@ public class SearchResult {
      * 属性VO
      */
     @Data
-    private static class AttrVo{
+    public static class AttrVo{
         private Long attrId;
         private String attrName;
         private List<String> attrValue;
@@ -75,7 +75,7 @@ public class SearchResult {
      * 分类VO
      */
     @Data
-    private static class CatalogVo{
+    public static class CatalogVo{
         private Long catalogId;
         private String catalogName;
     }
