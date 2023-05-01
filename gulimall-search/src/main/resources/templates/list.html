@@ -402,7 +402,7 @@
         <a href="http://gulimall.com"><img src="/static/search/image/logo1.jpg" alt=""></a>
     </div>
     <div class="header_form">
-        <input id="keyword_input" type="text" placeholder="手机"/>
+        <input id="keyword_input" type="text" placeholder="手机" th:value="${param.keyword}"/>
         <a href="javascript:searchByKeyword()">搜索</a>
     </div>
     <div class="header_ico">
@@ -789,7 +789,9 @@
                             <ul>
 
                                 <li th:each="brand : ${result.brands}">
-                                    <a href="javascript:void(0)" th:onclick="|searchSku('brandId',${brand.brandId})|"><img th:src="${brand.brandImg}" alt="">
+                                    <a href="javascript:void(0)"
+                                       th:onclick="|searchSku('brandId',${brand.brandId})|"><img
+                                            th:src="${brand.brandImg}" alt="">
                                         <div th:text="${brand.brandName}">
                                             华为（HUAWEI）
                                         </div>
@@ -818,7 +820,8 @@
                     </div>
                     <div class="sl_value">
                         <ul>
-                            <li th:each="catelog : ${result.catalogs}"><a href="javascript:void(0)" th:onclick="|searchSku('catelog3Id',${catelog.catalogId})|"
+                            <li th:each="catelog : ${result.catalogs}"><a href="javascript:void(0)"
+                                                                          th:onclick="|searchSku('catalog3Id',${catelog.catalogId})|"
                                                                           th:text="${catelog.catalogName}">0-499</a>
                             </li>
                         </ul>
@@ -845,8 +848,9 @@
                     <div class="sl_value">
                         <ul>
                             <!--attrs_12_A13-->
-                            <li th:each="attrValue : ${attr.attrValue}"><a  th:href="${'javascript:searchSku(&quot;attrs&quot;,&quot;'+attr.attrId+'_'+attrValue+'&quot;)'}"
-                                                                           th:text="${attrValue}">0-499</a></li>
+                            <li th:each="attrValue : ${attr.attrValue}"><a
+                                    th:href="${'javascript:searchSku(&quot;attrs&quot;,&quot;'+attr.attrId+'_'+attrValue+'&quot;)'}"
+                                    th:text="${attrValue}">0-499</a></li>
                         </ul>
                     </div>
                 </div>
@@ -1214,27 +1218,29 @@
                         </div>
                     </div>
                     <!--分页-->
+                    <!--TODO 分页功能进行完善和修改：模仿京东..中间的...如何放在合适位置-->
                     <div class="filter_page">
                         <div class="page_wrap">
                             <span class="page_span1">
-                                <a href="/static/search/#">
+                                <a th:attr="pageNext=${result.pageNum - 1}" class="page_go"
+                                   th:if="${result.pageNum > 1}"
+                                >
                                     < 上一页
                                 </a>
-                                <a href="/static/search/#" style="border: 0;color:#ee2222;background: #fff">1</a>
-                                <a href="/static/search/#">2</a>
-                                <a href="/static/search/#">3</a>
-                                <a href="/static/search/#"
-                                   style="border: 0;font-size: 20px;color: #999;background: #fff">...</a>
-                                <a href="/static/search/#">169</a>
-                                <a href="/static/search/#">
+                                <a class="page_go" th:each="index:${#numbers.sequence(1, result.totalPages)}"
+                                   href="javascript:void(0)"
+                                   th:attr="pageNext=${index},style=${index == result.pageNum?'border: 0;color:#ee2222;background: #fff':''}"
+                                >[[${index}]]</a>
+                                <a class="page_go" th:attr="pageNext=${result.pageNum+1}"
+                                   th:if="${result.pageNum < result.totalPages}">
                                     下一页 >
                                 </a>
                             </span>
                             <span class="page_span2">
-                                <em>共<b>169</b>页&nbsp;&nbsp;到第</em>
+                                <em>共<b>[[${result.totalPages}]]</b>页&nbsp;&nbsp;到第</em>
                                 <input type="number" value="1">
                                 <em>页</em>
-                                <a href="/static/search/#">确定</a>
+                                <a href="/static/search/#" class="page_submit">确定</a>
                             </span>
                         </div>
                     </div>
@@ -1983,30 +1989,30 @@
         $(this).css("color", "#727272")
     })
 
-    function searchSku(name,value) {
+    function searchSku(name, value) {
         // TODO 需要处理的bug
         //  1.如果路径中没有参数，会多出来一个& √
-        //  2.当点击相同属性，比如相同品牌，会不停的向后面追加相同的属性。
+        //  2.当点击相同属性，比如相同品牌，会不停的向后面追加相同的属性。 √
         //  3.无法支持多选 attrs=15_麒麟9000:A16:骁龙985
         //  4.路径存在乱码
-        // let url = location.href +"";
-        // if(url.contains("?")){
-        //     location.href = location.href + "&" +name+"="+value;
-        // }else{
-        //     location.href = location.href + "?" +name+"="+value;
-        // }
-        let url = location.href;
-        let hasQuestionMark = url.indexOf('?') !== -1;
+        let hasQuestionMark = location.href.indexOf('?') !== -1;
+        // 如果当前路径还没有参数
         if (!hasQuestionMark) {
-            url += '?';
+            location.href = location.href + "?" + name + "=" + value;
         } else {
-            url += '&';
+            //如果路径有参数，且追加的查询条件已经存在了
+            if (location.href.indexOf(name) != -1) {
+                location.href = replaceParamVal(location.href, name, value);
+            } else {//如果路径有参数，且追加的查询条件不存在了
+                location.href = location.href + "&" + name + "=" + value;
+            }
         }
-        location.href = url + name+ "=" + value;
     }
+
     function searchByKeyword() {
-        searchSku("keyword",$("#keyword_input").val());
+        searchSku("keyword", $("#keyword_input").val());
     }
+
     // function searchSku(name,value) {
     //     let url = location.href;
     //     let paramsChanged = false;
@@ -2029,6 +2035,41 @@
     //     newURL += paramsArr.join('&');
     //     location.href = newURL;
     // }
+    $(".page_go").click(function () {
+        var pageNext = $(this).attr("pageNext");
+        let hasQuestionMark = location.href.indexOf('?') !== -1;
+        // 如果当前路径还没有参数
+        if (!hasQuestionMark) {
+            location.href = location.href + "?pageNum=" + pageNext;
+        } else {
+            //如果路径有参数，且追加的查询条件（pageNum）已经存在了
+            if (location.href.indexOf("pageNum") != -1) {
+                //替换pageNum的值
+                location.href = replaceParamVal(location.href, "pageNum", pageNext);
+            } else {//如果路径有参数，且追加的查询条件（pageNum）不存在
+                location.href = location.href + "&pageNum=" + pageNext;
+            }
+        }
+        //
+        //
+        // var href = location.href;
+        // if (href.indexOf("pageNum") != -1) {
+        //     //替换pageNum的值
+        //     location.href = replaceParamVal(href, "pageNum", pageNext);
+        // } else {
+        //     location.href = location.href + "&pageNum=" + pageNext;
+        // }
+        return false;
+    });
+
+    // 修改url中参数的值
+    function replaceParamVal(url, paramName, replaceVal) {
+        var oUrl = url.toString();
+        var re = eval('/(' + paramName + '=)([^&]*)/gi');
+        var nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
+        return nUrl;
+    }
+
 </script>
 </body>
 </html>
