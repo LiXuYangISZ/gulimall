@@ -169,7 +169,7 @@ public class MallSearchServiceImpl implements MallSearchService {
         // 3.3高亮
         if (StringUtils.isNotBlank(param.getKeyword())) {
             HighlightBuilder highlightBuilder = new HighlightBuilder();
-            highlightBuilder.field("skuTitle").preTags("<b sytel='color:red'>").postTags("</b>");
+            highlightBuilder.field("skuTitle").preTags("<b style='color:red'>").postTags("</b>");
             searchSourceBuilder.highlighter(highlightBuilder);
         }
 
