@@ -16,6 +16,8 @@ import org.elasticsearch.index.query.NestedQueryBuilder;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.index.query.RangeQueryBuilder;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
+import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -114,16 +116,14 @@ public class MallSearchServiceImpl implements MallSearchService {
         // 2.2.5 按照价格区间进行查询
         if(StringUtils.isNotBlank(param.getSkuPrice())){
             RangeQueryBuilder rangeQueryBuilder = QueryBuilders.rangeQuery("skuPrice");
-            // TODO 可能存在bug _500永远是2~
+            // 注意 _500永远是2,500_永远是1
             String[] str = param.getSkuPrice().split("_");
-            if(str.length == 2){
-                rangeQueryBuilder.gte(str[0]).lte(str[1]);
+            if(param.getSkuPrice().startsWith("_")){
+                rangeQueryBuilder.lte(str[1]);
+            }else if(param.getSkuPrice().endsWith("_")){
+                rangeQueryBuilder.gte(str[0]);
             }else{
-                if(param.getSkuPrice().startsWith("_")){
-                    rangeQueryBuilder.lte(str[0]);
-                }else{
-                    rangeQueryBuilder.gte(str[0]);
-                }
+                rangeQueryBuilder.gte(str[0]).lte(str[1]);
             }
             boolQueryBuilder.filter(rangeQueryBuilder);
         }
@@ -133,8 +133,31 @@ public class MallSearchServiceImpl implements MallSearchService {
 
 
         /**
-         * 排序，分页，高亮
+         * 3.排序，分页，高亮
          */
+        // 3.1排序
+        if(StringUtils.isNotBlank(param.getSort())){//sort=hotScore_acs/desc
+            String[] str = param.getSort().split("_");
+            SortOrder order = str[1].equalsIgnoreCase("asc") ? SortOrder.ASC : SortOrder.DESC;
+            searchSourceBuilder.sort(str[0], order);
+        }
+
+        // 3.2分页
+        // pageNum 1 from 0 size 5
+        // pageNum 2 from 5 size 5
+        // pageNum n from:(n-1)*size
+        searchSourceBuilder.from((param.getPageNum() - 1)*EsConstant.PRODUCT_PAGESIZE);
+        searchSourceBuilder.size(EsConstant.PRODUCT_PAGESIZE);
+
+        // 3.3高亮
+        if(StringUtils.isNotBlank(param.getKeyword())){
+            HighlightBuilder highlightBuilder = new HighlightBuilder();
+            highlightBuilder.field("skuTitle").preTags("<b sytel='color:red'>").postTags("</b>");
+            searchSourceBuilder.highlighter(highlightBuilder);
+        }
+
+        String s = searchSourceBuilder.toString();
+        System.out.println("构建的DSL:"+s);
 
         /**
          * 聚合分析
