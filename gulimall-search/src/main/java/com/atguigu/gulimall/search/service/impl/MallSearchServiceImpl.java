@@ -216,8 +216,13 @@ public class MallSearchServiceImpl implements MallSearchService {
         if(hits.getHits()!=null && hits.getHits().length > 0){
             for (SearchHit hit : hits.getHits()) {
                 String source = hit.getSourceAsString();
-                SkuEsModel sku = JSON.parseObject(source, SkuEsModel.class);
-                skuEsModels.add(sku);
+                SkuEsModel skuEsModel = JSON.parseObject(source, SkuEsModel.class);
+                // 设置搜索关键字高亮
+                if(StringUtils.isNotBlank(param.getKeyword())){
+                    String skuTitleStr = hit.getHighlightFields().get("skuTitle").fragments()[0].string();
+                    skuEsModel.setSkuTitle(skuTitleStr);
+                }
+                skuEsModels.add(skuEsModel);
             }
         }
         result.setProducts(skuEsModels);
@@ -287,6 +292,6 @@ public class MallSearchServiceImpl implements MallSearchService {
         result.setTotal(total);
         result.setTotalPages((int) ((total + 1) / EsConstant.PRODUCT_PAGESIZE));
         result.setPageNum(param.getPageNum());
-        return null;
+        return result;
     }
 }
