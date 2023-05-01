@@ -402,8 +402,8 @@
         <a href="http://gulimall.com"><img src="/static/search/image/logo1.jpg" alt=""></a>
     </div>
     <div class="header_form">
-        <input type="text" placeholder="手机"/>
-        <a href="/static/search/#">搜索</a>
+        <input id="keyword_input" type="text" placeholder="手机"/>
+        <a href="javascript:searchByKeyword()">搜索</a>
     </div>
     <div class="header_ico">
         <div class="header_gw">
@@ -789,7 +789,7 @@
                             <ul>
 
                                 <li th:each="brand : ${result.brands}">
-                                    <a href="/static/search/#"><img th:src="${brand.brandImg}" alt="">
+                                    <a href="javascript:void(0)" th:onclick="|searchSku('brandId',${brand.brandId})|"><img th:src="${brand.brandImg}" alt="">
                                         <div th:text="${brand.brandName}">
                                             华为（HUAWEI）
                                         </div>
@@ -818,7 +818,7 @@
                     </div>
                     <div class="sl_value">
                         <ul>
-                            <li th:each="catelog : ${result.catalogs}"><a href="/static/search/#"
+                            <li th:each="catelog : ${result.catalogs}"><a href="javascript:void(0)" th:onclick="|searchSku('catelog3Id',${catelog.catalogId})|"
                                                                           th:text="${catelog.catalogName}">0-499</a>
                             </li>
                         </ul>
@@ -844,7 +844,8 @@
                     </div>
                     <div class="sl_value">
                         <ul>
-                            <li th:each="attrValue : ${attr.attrValue}"><a href="/static/search/#"
+                            <!--attrs_12_A13-->
+                            <li th:each="attrValue : ${attr.attrValue}"><a  th:href="${'javascript:searchSku(&quot;attrs&quot;,&quot;'+attr.attrId+'_'+attrValue+'&quot;)'}"
                                                                            th:text="${attrValue}">0-499</a></li>
                         </ul>
                     </div>
@@ -1981,6 +1982,53 @@
     }, function () {
         $(this).css("color", "#727272")
     })
+
+    function searchSku(name,value) {
+        // TODO 需要处理的bug
+        //  1.如果路径中没有参数，会多出来一个& √
+        //  2.当点击相同属性，比如相同品牌，会不停的向后面追加相同的属性。
+        //  3.无法支持多选 attrs=15_麒麟9000:A16:骁龙985
+        //  4.路径存在乱码
+        // let url = location.href +"";
+        // if(url.contains("?")){
+        //     location.href = location.href + "&" +name+"="+value;
+        // }else{
+        //     location.href = location.href + "?" +name+"="+value;
+        // }
+        let url = location.href;
+        let hasQuestionMark = url.indexOf('?') !== -1;
+        if (!hasQuestionMark) {
+            url += '?';
+        } else {
+            url += '&';
+        }
+        location.href = url + name+ "=" + value;
+    }
+    function searchByKeyword() {
+        searchSku("keyword",$("#keyword_input").val());
+    }
+    // function searchSku(name,value) {
+    //     let url = location.href;
+    //     let paramsChanged = false;
+    //     let params = {};
+    //     if (url.indexOf('?') !== -1) {
+    //         let strs = url.substring(url.indexOf('?') + 1).split('&');
+    //         // 解析查询参数逻辑...
+    //     } else {
+    //         paramsChanged = true;
+    //     }
+    //     if(paramsChanged) {
+    //         params[name] = value;
+    //     }
+    //
+    //     let newURL = paramsChanged ? url + '?' : url;
+    //     let paramsArr = [];
+    //     for(let key in params) {
+    //         paramsArr.push(key + '=' + params[key]);
+    //     }
+    //     newURL += paramsArr.join('&');
+    //     location.href = newURL;
+    // }
 </script>
 </body>
 </html>
