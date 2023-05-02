@@ -1046,11 +1046,12 @@
                     <!--综合排序-->
                     <div class="filter_top">
                         <div class="filter_top_left">
-                            <a href="/static/search/#">综合排序</a>
-                            <a href="/static/search/#">销量</a>
-                            <a href="/static/search/#">价格</a>
-                            <a href="/static/search/#">评论分</a>
-                            <a href="/static/search/#">上架时间</a>
+                            <a href="/static/search/#" class="sort_sku" sort="hotScore">综合排序</a>
+                            <a href="/static/search/#" class="sort_sku" sort="saleCount">销量</a>
+                            <a href="/static/search/#" class="sort_sku" sort="skuPrice">价格</a>
+                            <!--TODO 之后可以加上评论数和新品-->
+                            <a href="javascript:void(0);">评论数</a>
+                            <a href="javascript:void(0);">新品</a>
                         </div>
                         <div class="filter_top_right">
                             <span class="fp-text">
@@ -1238,9 +1239,9 @@
                             </span>
                             <span class="page_span2">
                                 <em>共<b>[[${result.totalPages}]]</b>页&nbsp;&nbsp;到第</em>
-                                <input type="number" value="1">
+                                <input type="number" id="page_input" value="1" th:value="${param.pageNum}">
                                 <em>页</em>
-                                <a href="/static/search/#" class="page_submit">确定</a>
+                                <a href="javascript:void(0)" th:onclick="|goPage(${result.totalPages})|" class="page_submit">确定</a>
                             </span>
                         </div>
                     </div>
@@ -2013,28 +2014,6 @@
         searchSku("keyword", $("#keyword_input").val());
     }
 
-    // function searchSku(name,value) {
-    //     let url = location.href;
-    //     let paramsChanged = false;
-    //     let params = {};
-    //     if (url.indexOf('?') !== -1) {
-    //         let strs = url.substring(url.indexOf('?') + 1).split('&');
-    //         // 解析查询参数逻辑...
-    //     } else {
-    //         paramsChanged = true;
-    //     }
-    //     if(paramsChanged) {
-    //         params[name] = value;
-    //     }
-    //
-    //     let newURL = paramsChanged ? url + '?' : url;
-    //     let paramsArr = [];
-    //     for(let key in params) {
-    //         paramsArr.push(key + '=' + params[key]);
-    //     }
-    //     newURL += paramsArr.join('&');
-    //     location.href = newURL;
-    // }
     $(".page_go").click(function () {
         var pageNext = $(this).attr("pageNext");
         let hasQuestionMark = location.href.indexOf('?') !== -1;
@@ -2050,15 +2029,6 @@
                 location.href = location.href + "&pageNum=" + pageNext;
             }
         }
-        //
-        //
-        // var href = location.href;
-        // if (href.indexOf("pageNum") != -1) {
-        //     //替换pageNum的值
-        //     location.href = replaceParamVal(href, "pageNum", pageNext);
-        // } else {
-        //     location.href = location.href + "&pageNum=" + pageNext;
-        // }
         return false;
     });
 
@@ -2069,6 +2039,92 @@
         var nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
         return nUrl;
     }
+    // 页面跳转
+    function goPage(totalPage) {
+        var nextPage = $("#page_input").val();
+        if(nextPage <=0){
+            nextPage = 1;
+        }
+        if(nextPage > totalPage){
+            nextPage = totalPage;
+        }
+        $("#page_input").val(nextPage);
+        searchSku("pageNum",nextPage);
+    }
+
+    $(".sort_sku").click(function () {
+        //1、当前被点击的元素变为选中状态
+        //    color: #FFF; border-color: #e4393c; background: #e4393c;
+        //改变当前元素以及兄弟元素的样式
+        changeStyle(this);
+
+        // // $(this).toggleClass("desc");
+        // 2、跳转到指定位置 sort=skuPrice_asc/desc
+        var sort = $(this).attr("sort");
+        sort =  $(this).hasClass("desc")?sort+"_desc":sort+"_asc";
+        location.href = replaceAndAddParamVal(location.href,"sort",sort);
+
+        //禁用默认行为
+        return false;
+    })
+
+    function changeStyle(ele){
+        // 'color: #333;border-color:#CCC;background: #fff' 默认
+        // 'color: #FFF;border-color:#e4393c;background: #e4393c' 高亮
+        $(".sort_sku").css({"color":"#333","border-color":"#CCC","background":"#FFF"});
+        $(".sort_sku").each(function(){
+            var text = $(this).text().replace("↓","").replace("↑","");
+            $(this).text(text);
+        });
+        $(ele).css({"color":"#FFF","border-color":"#e4393c","background":"#e4393c"});
+        //改变升降序
+        $(ele).toggleClass("desc");//加上就是降序，不加就是升序
+        if($(ele).hasClass("desc")){
+            //降序
+            var text = $(ele).text().replace("↓","").replace("↑","");
+            text = text+ "↓";
+            $(ele).text(text);
+        }else{
+            var text = $(ele).text().replace("↓","").replace("↑","");
+            text = text+ "↑";
+            $(ele).text(text);
+        }
+    }
+
+    function replaceAndAddParamVal(url, paramName, replaceVal,forceAdd) {
+        var oUrl = url.toString();
+        //1、如果没有就添加，有就替换；
+        if(oUrl.indexOf(paramName)!=-1){
+            if(forceAdd){
+                var nUrl = "";
+                if (oUrl.indexOf("?") != -1) {
+                    nUrl = oUrl +"&"+paramName + '=' + replaceVal;
+                } else {
+                    nUrl = oUrl +"?"+paramName + '=' + replaceVal;
+                }
+
+
+                return  nUrl;
+            }else{
+                var re = eval('/(' + paramName + '=)([^&]*)/gi');
+                var nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
+                return nUrl;
+            }
+        }else{
+            var nUrl = "";
+            if (oUrl.indexOf("?") != -1) {
+                nUrl = oUrl +"&"+paramName + '=' + replaceVal;
+            } else {
+                nUrl = oUrl +"?"+paramName + '=' + replaceVal;
+            }
+
+
+            return  nUrl;
+        }
+
+
+    }
+
 
 </script>
 </body>
