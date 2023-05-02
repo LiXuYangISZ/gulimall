@@ -1045,24 +1045,26 @@
                 <div class="filter">
                     <!--综合排序-->
                     <div class="filter_top">
-                        <div class="filter_top_left" th:with="p = ${param.sort},priceRange = ${param.skuPrice}">
-                            <!--<a href="/static/search/#" class="sort_sku" sort="hotScore">综合排序</a>-->
-                            <!--<a href="/static/search/#" class="sort_sku" sort="saleCount">销量</a>-->
-                            <!--<a href="/static/search/#" class="sort_sku" sort="skuPrice">价格</a>-->
+                        <div class="filter_top_left">
+                            <!--网友的代码-->
+                            <a href="javascript:void(0);" class="sort_sku" sortRule="hotScore">综合排序</a>
+                            <a href="javascript:void(0);" class="sort_sku" sortRule="saleCount">销量</a>
+                            <a href="javascript:void(0);" class="sort_sku" sortRule="skuPrice">价格</a>
 
                             <!--雷神的思路代码-->
-                            <a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"
-                               th:attr="style=${(#strings.isEmpty(p) || #strings.startsWith(p,'hotScore'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"
-                               sort="hotScore" href="/static/search/#"> 综合排序 [[${(!#strings.isEmpty(p) &&
-                                #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc'))?'↓':'↑'}]] </a>
-                            <a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"
-                               th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"
-                               sort="saleCount" href="/static/search/#">销量 [[${(!#strings.isEmpty(p) &&
-                                #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc'))?'↓':'↑'}]]</a>
-                            <a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice')&& #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"
-                               th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"
-                               sort="skuPrice" href="/static/search/#">价格 [[${(!#strings.isEmpty(p) &&
-                                #strings.startsWith(p,'skuPrice')&& #strings.endsWith(p,'desc'))?'↓':'↑'}]]</a>
+                            <!--<div class="filter_top_left" th:with="p = ${param.sort},priceRange = ${param.skuPrice}">-->
+                            <!--<a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"-->
+                            <!--   th:attr="style=${(#strings.isEmpty(p) || #strings.startsWith(p,'hotScore'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"-->
+                            <!--   sort="hotScore" href="/static/search/#"> 综合排序 [[${(!#strings.isEmpty(p) &&-->
+                            <!--    #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc'))?'↓':'↑'}]] </a>-->
+                            <!--<a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"-->
+                            <!--   th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"-->
+                            <!--   sort="saleCount" href="/static/search/#">销量 [[${(!#strings.isEmpty(p) &&-->
+                            <!--    #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc'))?'↓':'↑'}]]</a>-->
+                            <!--<a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice')&& #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"-->
+                            <!--   th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"-->
+                            <!--   sort="skuPrice" href="/static/search/#">价格 [[${(!#strings.isEmpty(p) &&-->
+                            <!--    #strings.startsWith(p,'skuPrice')&& #strings.endsWith(p,'desc'))?'↓':'↑'}]]</a>-->
 
                             <!--TODO 之后可以加上评论数和新品-->
                             <a href="javascript:void(0);">评论数</a>
@@ -2069,19 +2071,32 @@
         searchSku("pageNum", nextPage);
     }
 
+    // 雷神的代码
+    // $(".sort_sku").click(function () {
+    //     //1、当前被点击的元素变为选中状态
+    //     //    color: #FFF; border-color: #e4393c; background: #e4393c;
+    //     //改变当前元素以及兄弟元素的样式
+    //     // changeStyle(this);
+    //
+    //     $(this).toggleClass("desc");
+    //     // 2、跳转到指定位置 sort=skuPrice_asc/desc
+    //     var sort = $(this).attr("sort");
+    //     sort = $(this).hasClass("desc") ? sort + "_desc" : sort + "_asc";
+    //     location.href = replaceAndAddParamVal(location.href, "sort", sort);
+    //
+    //     //禁用默认行为
+    //     return false;
+    // })
+
     $(".sort_sku").click(function () {
-        //1、当前被点击的元素变为选中状态
-        //    color: #FFF; border-color: #e4393c; background: #e4393c;
-        //改变当前元素以及兄弟元素的样式
-        // changeStyle(this);
-
-        $(this).toggleClass("desc");
-        // 2、跳转到指定位置 sort=skuPrice_asc/desc
-        var sort = $(this).attr("sort");
-        sort = $(this).hasClass("desc") ? sort + "_desc" : sort + "_asc";
-        location.href = replaceAndAddParamVal(location.href, "sort", sort);
-
-        //禁用默认行为
+        // 跳转到指定位置 sort=skuPrice_asc/desc
+        var sortRule = $(this).attr("sortRule");
+        if($(this).hasClass("asc")){
+            searchSku("sort",sortRule+"_"+"desc");
+        }else{
+            searchSku("sort",sortRule+"_"+"asc");
+        }
+        // 禁用默认行为
         return false;
     })
 
@@ -2140,6 +2155,45 @@
         }
 
 
+    }
+
+    // 页面渲染完成后执行的代码
+    window.onload = function () {
+        // 取出url
+        var url = window.location.href.toString();
+        // 正则的意义：是否有sort字段，取出按哪个字段排序，以及排序方式
+        var hasSort = eval('/(sort=)([^_&]*)_([^&]*)/gi');
+        // 将上面正则表达式括号里提取出每个值算作数组的一个元素，加上第0个元素默认为整个正则匹配到的值，组成数组(4个元素)
+        var sortArray = hasSort.exec(url);
+        // 判断url中是否有sort字段， 若有，给文本内容加上‘↑’或‘↓’
+        if (sortArray !== null && sortArray.length !== 0) {
+            // 遍历
+            $(".sort_sku").each(function () {
+                // 清空排序标识字符
+                $(this).text($(this).text().replace('↓', '').replace('↑', ''));
+                // 同类元素清空
+                $(this).css({"color": "#333", "border-color": "#CCC", "background": "#FFF"});
+                // 获取每个的sortRule的值
+                var sortRule = $(this).attr("sortRule");
+                // 判断是否与url中的值对应，若是，判断升降序，然后加上标识字符
+                if (sortRule === sortArray[2]) {
+                    // 当前点击的元素变为选中状态(背景变红.)
+                    $(this).css({"color": "#FFF", "border-color": "#e4393c", "background": "#e4393c"})
+                    // 不区分大小写，判断升降序
+                    //  *升序
+                    if (sortArray[3].toLowerCase() === "asc".toLowerCase()) {
+                        // 切换一个类，如果存在则删除，不存在则添加
+                        $(this).toggleClass('asc');
+                        //加上升序标识字符
+                        $(this).text($(this).text() + '↑');
+                    } else {
+                        // *降序
+                        $(this).toggleClass('desc');
+                        $(this).text($(this).text() + '↓');
+                    }
+                }
+            })
+        }
     }
 
 
