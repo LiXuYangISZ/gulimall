@@ -289,8 +289,9 @@ public class MallSearchServiceImpl implements MallSearchService {
 
         // 5.分页信息-页码、总记录数、总页码
         long total = hits.getTotalHits().value;
+        long pages = total % EsConstant.PRODUCT_PAGESIZE == 0 ? total / EsConstant.PRODUCT_PAGESIZE: total / EsConstant.PRODUCT_PAGESIZE +1;
         result.setTotal(total);
-        result.setTotalPages((int) ((total + 1) / EsConstant.PRODUCT_PAGESIZE));
+        result.setTotalPages(pages);
         result.setPageNum(param.getPageNum());
         return result;
     }

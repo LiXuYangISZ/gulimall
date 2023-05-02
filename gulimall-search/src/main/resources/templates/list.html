@@ -776,7 +776,7 @@
             <!--手机商品筛选-->
             <div class="title">
                 <h3><b>手机</b><em>商品筛选</em></h3>
-                <div class="st-ext">共&nbsp;<span>10135</span>个商品</div>
+                <div class="st-ext">共&nbsp;<span th:text="${result.total}"></span>个商品</div>
             </div>
             <div class="JD_nav_logo">
                 <!--品牌-->
@@ -1078,7 +1078,7 @@
                         </div>
                         <div class="filter_top_right">
                             <span class="fp-text">
-                               <b>1</b><em>/</em><i>169</i>
+                               <b>[[${result.pageNum}]]</b><em>/</em><i>[[${result.totalPages}]]</i>
                            </span>
                             <a href="/static/search/#" class="prev"><</a>
                             <a href="/static/search/#" class="next"> > </a>
@@ -1205,7 +1205,7 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="#" th:with="check = ${param.hasStock}">
+                                    <a href="javascript:void(0);" th:with="check = ${param.hasStock}">
                                         <input id="showHasStock" type="checkbox" th:checked="${#strings.equals(check,'1')}">
                                         仅显示有货
                                     </a>
@@ -1273,7 +1273,7 @@
                                 >
                                     < 上一页
                                 </a>
-                                <a class="page_go" th:each="index:${#numbers.sequence(1, result.totalPages)}"
+                                <a class="page_go" th:each="index : ${#numbers.sequence(1, result.totalPages)}"
                                    href="javascript:void(0)"
                                    th:attr="pageNext=${index},style=${index == result.pageNum?'border: 0;color:#ee2222;background: #fff':''}"
                                 >[[${index}]]</a>
@@ -2230,17 +2230,26 @@
         var to = $("#skuPriceTo").val();
 
         var query = from + "_" + to;
-
-        location.href = replaceAndAddParamVal(location.href,"skuPrice",query);
+        // 为了，防止以上次查询结果为条件。每次修改价格时候，重新回到首页。pageNum=1
+        var url = replaceAndAddParamVal(location.href,"skuPrice",query);
+        location.href = replaceAndAddParamVal(url,"pageNum",1);
     });
     //显示有库存的
     $("#showHasStock").change(function () {
         if($(this).prop('checked')){
-            location.href = replaceAndAddParamVal(location.href,"hasStock",1);
+            var url = replaceAndAddParamVal(location.href,"hasStock",1);
+            location.href = replaceAndAddParamVal(url,"pageNum",1);
         }else{
             //没选中
             var re = eval('/[?|&](hasStock=)([^&]*)/gi');
-            location.href = (location.href+"").replace(re,'');
+            // 判断stock是否是第一个参数的位置，如果是替换为?方便后面的使用
+            if(location.href.indexOf("?hasStock")!=-1){
+                var url = (location.href+"").replace(re,'?1=1');
+                location.href = replaceAndAddParamVal(url,"pageNum",1);
+            }else{
+                var url = (location.href+"").replace(re,'');
+                location.href = replaceAndAddParamVal(url,"pageNum",1);
+            }
         }
         return false;
     })
