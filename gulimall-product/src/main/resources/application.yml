@@ -49,6 +49,7 @@ server:
 logging:
     level:
         com.atguigu.gulimall: error
+    logging
 feign:
     client:
         config:

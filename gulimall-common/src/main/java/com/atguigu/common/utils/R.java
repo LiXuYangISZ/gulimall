@@ -38,6 +38,20 @@ public class R extends HashMap<String, Object> {
 	}
 
 	/**
+	 * 将其转为指定类型并返回
+	 * @param name
+	 * @param typeReference
+	 * @param <T>
+	 * @return
+	 */
+	public <T> T getDataByName(String name,TypeReference<T> typeReference){
+		Object data = get(name);//默认会是map类型
+		String str = JSON.toJSONString(data);
+		T t = JSON.parseObject(str, typeReference);
+		return t;
+	}
+
+	/**
 	 *
 	 * @param data
 	 * @return

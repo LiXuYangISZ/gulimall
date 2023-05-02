@@ -41,6 +41,29 @@ public class SearchResult {
      * 当前查询的结果，所有涉及到的分类
      */
     private List<CatalogVo> catalogs;
+    /**
+     * 面包屑导航数据
+     */
+    private List<NavVo> navs;
+
+    /**
+     * 面包屑导航
+     */
+    @Data
+    public static class NavVo{
+        /**
+         * 导航名称
+         */
+        private String navName;
+        /**
+         * 导航值
+         */
+        private String navValue;
+        /**
+         * 导航链接
+         */
+        private String link;
+    }
 
     /**
      * 品牌VO

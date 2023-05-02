@@ -1,11 +1,15 @@
 package com.atguigu.gulimall.search.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.to.SkuEsModel;
 import com.atguigu.common.utils.Query;
+import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.search.config.GulimallElasticSearchConfig;
 import com.atguigu.gulimall.search.constant.EsConstant;
+import com.atguigu.gulimall.search.feign.ProductFeignService;
 import com.atguigu.gulimall.search.service.MallSearchService;
+import com.atguigu.gulimall.search.vo.AttrResponseVo;
 import com.atguigu.gulimall.search.vo.SearchParam;
 import com.atguigu.gulimall.search.vo.SearchResult;
 import org.apache.commons.lang.StringUtils;
@@ -51,6 +55,9 @@ public class MallSearchServiceImpl implements MallSearchService {
 
     @Autowired
     RestHighLevelClient client;
+
+    @Autowired
+    ProductFeignService productFeignService;
 
     /**
      * @param param 检索所有参数
@@ -293,6 +300,29 @@ public class MallSearchServiceImpl implements MallSearchService {
         result.setTotal(total);
         result.setTotalPages(pages);
         result.setPageNum(param.getPageNum());
+
+        // 6.构建面包屑导航功能
+        List <SearchResult.NavVo> navVos = param.getAttrs().stream().map(attr -> {
+            // 6.1 分析每个attrs传过来的查询数据值
+            SearchResult.NavVo navVo = new SearchResult.NavVo();
+            //attr=2_5寸:7寸
+            String[] str = attr.split("_");
+            // TODO 目前只支持单属性检索。后续可以扩展多属性检索
+            navVo.setNavValue(str[1]);
+            R r = productFeignService.getAttrInfo(Long.valueOf(str[0]));
+            if (r.getCode() == 0) {
+                AttrResponseVo attrVo = r.getDataByName("attr", new TypeReference <AttrResponseVo>() {
+                });
+                navVo.setNavName(attrVo.getAttrName());
+            } else {
+                navVo.setNavName(str[0]);
+            }
+            // 2.取消了这个面包屑之后，我们要跳转到的那个地方
+            return navVo;
+        }).collect(Collectors.toList());
+        result.setNavs(navVos);
+
+
         return result;
     }
 }
