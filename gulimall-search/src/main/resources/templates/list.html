@@ -1045,7 +1045,7 @@
                 <div class="filter">
                     <!--综合排序-->
                     <div class="filter_top">
-                        <div class="filter_top_left">
+                        <div class="filter_top_left" th:with="p = ${param.sort},priceRange = ${param.skuPrice}">
                             <!--网友的代码-->
                             <a href="javascript:void(0);" class="sort_sku" sortRule="hotScore">综合排序</a>
                             <a href="javascript:void(0);" class="sort_sku" sortRule="saleCount">销量</a>
@@ -1069,6 +1069,12 @@
                             <!--TODO 之后可以加上评论数和新品-->
                             <a href="javascript:void(0);">评论数</a>
                             <a href="javascript:void(0);">新品</a>
+                            <input id="skuPriceFrom" type="number" style="width: 100px;margin-left: 30px;"
+                                   th:value="${#strings.isEmpty(priceRange)?'':#strings.substringBefore(priceRange,'_')}">
+                            -
+                            <input id="skuPriceTo" type="number" style="width: 100px;"
+                                   th:value="${#strings.isEmpty(priceRange)?'':#strings.substringAfter(priceRange,'_')}">
+                            <button id="skuPriceSearchBtn">确定</button>
                         </div>
                         <div class="filter_top_right">
                             <span class="fp-text">
@@ -1084,75 +1090,97 @@
                             <div class="fs-cell">收货地</div>
                             <div class="dizhi">
                                 <div class="dizhi_show">
-                                    <em>北京朝阳区三环以内</em>
+                                    <em>河南省洛阳市</em>
                                     <b></b>
                                 </div>
                             </div>
                             <div class="dizhi_con">
                                 <ul id="tab">
-                                    <li id="tab1" value="1">北京 <img src="/static/search/image/down-@1x.png" alt=""></li>
-                                    <li id="tab2" value="2">朝阳 <img src="/static/search/image/down-@1x.png" alt=""></li>
-                                    <li id="tab3" value="3">三环以内 <img src="/static/search/image/down-@1x.png" alt="">
+                                    <li id="tab1" value="1">河南 <img src="/static/search/image/down-@1x.png" alt=""></li>
+                                    <li id="tab2" value="2">洛阳市 <img src="/static/search/image/down-@1x.png" alt="">
+                                    </li>
+                                    <li id="tab3" value="3">请选择 <img src="/static/search/image/down-@1x.png" alt="">
                                     </li>
                                 </ul>
                                 <div id="container">
                                     <div id="content1" style="z-index: 1;">
-                                        <a href="/static/search/#">北京</a>
-                                        <a href="/static/search/#">上海</a>
-                                        <a href="/static/search/#">天津</a>
-                                        <a href="/static/search/#">重庆</a>
-                                        <a href="/static/search/#">河北</a>
-                                        <a href="/static/search/#">山西</a>
-                                        <a href="/static/search/#">河南</a>
-                                        <a href="/static/search/#">辽宁</a>
-                                        <a href="/static/search/#">吉林</a>
-                                        <a href="/static/search/#">黑龙江</a>
-                                        <a href="/static/search/#">内蒙古</a>
-                                        <a href="/static/search/#">江苏</a>
-                                        <a href="/static/search/#">山东</a>
-                                        <a href="/static/search/#">安徽</a>
-                                        <a href="/static/search/#">浙江</a>
-                                        <a href="/static/search/#">福建</a>
-                                        <a href="/static/search/#">湖北</a>
-                                        <a href="/static/search/#">湖南</a>
-                                        <a href="/static/search/#">广东</a>
-                                        <a href="/static/search/#">广西</a>
-                                        <a href="/static/search/#">江西</a>
-                                        <a href="/static/search/#">四川</a>
-                                        <a href="/static/search/#">海南</a>
-                                        <a href="/static/search/#">贵州</a>
-                                        <a href="/static/search/#">云南</a>
-                                        <a href="/static/search/#">西藏</a>
-                                        <a href="/static/search/#">陕西</a>
-                                        <a href="/static/search/#">甘肃</a>
-                                        <a href="/static/search/#">青海</a>
-                                        <a href="/static/search/#">宁夏</a>
-                                        <a href="/static/search/#">新疆</a>
-                                        <a href="/static/search/#">港澳</a>
-                                        <a href="/static/search/#">台湾</a>
-                                        <a href="/static/search/#">钓鱼岛</a>
-                                        <a href="/static/search/#">海外</a>
+                                        <a href="javascript:void(0);">北京</a>
+                                        <a href="javascript:void(0);">上海</a>
+                                        <a href="javascript:void(0);">天津</a>
+                                        <a href="javascript:void(0);">重庆</a>
+                                        <a href="javascript:void(0);">河北</a>
+                                        <a href="javascript:void(0);">山西</a>
+                                        <a href="javascript:void(0);">河南</a>
+                                        <a href="javascript:void(0);">辽宁</a>
+                                        <a href="javascript:void(0);">吉林</a>
+                                        <a href="javascript:void(0);">黑龙江</a>
+                                        <a href="javascript:void(0);">内蒙古</a>
+                                        <a href="javascript:void(0);">江苏</a>
+                                        <a href="javascript:void(0);">山东</a>
+                                        <a href="javascript:void(0);">安徽</a>
+                                        <a href="javascript:void(0);">浙江</a>
+                                        <a href="javascript:void(0);">福建</a>
+                                        <a href="javascript:void(0);">湖北</a>
+                                        <a href="javascript:void(0);">湖南</a>
+                                        <a href="javascript:void(0);">广东</a>
+                                        <a href="javascript:void(0);">广西</a>
+                                        <a href="javascript:void(0);">江西</a>
+                                        <a href="javascript:void(0);">四川</a>
+                                        <a href="javascript:void(0);">海南</a>
+                                        <a href="javascript:void(0);">贵州</a>
+                                        <a href="javascript:void(0);">云南</a>
+                                        <a href="javascript:void(0);">西藏</a>
+                                        <a href="javascript:void(0);">陕西</a>
+                                        <a href="javascript:void(0);">甘肃</a>
+                                        <a href="javascript:void(0);">青海</a>
+                                        <a href="javascript:void(0);">宁夏</a>
+                                        <a href="javascript:void(0);">新疆</a>
+                                        <a href="javascript:void(0);">港澳</a>
+                                        <a href="javascript:void(0);">台湾</a>
+                                        <a href="javascript:void(0);">钓鱼岛</a>
+                                        <a href="javascript:void(0);">海外</a>
 
                                     </div>
                                     <div id="content2">
-                                        <a href="/static/search/#">朝阳区</a>
-                                        <a href="/static/search/#">海淀区</a>
-                                        <a href="/static/search/#">西城区</a>
-                                        <a href="/static/search/#">东城区</a>
-                                        <a href="/static/search/#">大兴区</a>
-                                        <a href="/static/search/#">丰台区</a>
-                                        <a href="/static/search/#">昌平区</a>
-                                        <a href="/static/search/#">顺义区</a>
+                                        <!--郑州市-->
+                                        <a href="javascript:void(0);">郑州市</a>
+                                        <a href="javascript:void(0);">开封市</a>
+                                        <a href="javascript:void(0);">洛阳市</a>
+                                        <a href="javascript:void(0);">平顶山市</a>
+                                        <a href="javascript:void(0);">焦作市</a>
+                                        <a href="javascript:void(0);">鹤壁市</a>
+                                        <a href="javascript:void(0);">新乡市</a>
+                                        <a href="javascript:void(0);">安阳市</a>
+                                        <a href="javascript:void(0);">濮阳市</a>
+                                        <a href="javascript:void(0);">许昌市</a>
+                                        <a href="javascript:void(0);">漯河市</a>
+                                        <a href="javascript:void(0);">南阳市</a>
+                                        <a href="javascript:void(0);">三门峡市</a>
+                                        <a href="javascript:void(0);">商丘市</a>
+                                        <a href="javascript:void(0);">周口市</a>
+                                        <a href="javascript:void(0);">驻马店市</a>
+                                        <a href="javascript:void(0);">信阳市</a>
+                                        <a href="javascript:void(0);">济源市</a>
 
                                     </div>
                                     <div id="content3">
-                                        <a href="/static/search/#">三环以内</a>
-                                        <a href="/static/search/#">管庄</a>
-                                        <a href="/static/search/#">北苑</a>
-                                        <a href="/static/search/#">定福庄</a>
-                                        <a href="/static/search/#">三环到四环之间</a>
-                                        <a href="/static/search/#">四环到五环之间</a>
-                                        <a href="/static/search/#">五环到六环之间</a>
+                                        <a href="javascript:void(0);">瀍河回族区</a>
+                                        <a href="javascript:void(0);">涧西区</a>
+                                        <a href="javascript:void(0);">吉利区</a>
+                                        <a href="javascript:void(0);">栾川县</a>
+                                        <a href="javascript:void(0);">洛龙区</a>
+                                        <a href="javascript:void(0);">洛宁县</a>
+                                        <a href="javascript:void(0);">老城区</a>
+                                        <a href="javascript:void(0);">孟津区</a>
+                                        <a href="javascript:void(0);">汝阳县</a>
+                                        <a href="javascript:void(0);">嵩县</a>
+                                        <a href="javascript:void(0);">洛阳高新技术产业开发区</a>
+                                        <a href="javascript:void(0);">西工区</a>
+                                        <a href="javascript:void(0);">新安县</a>
+                                        <a href="javascript:void(0);">宜阳县</a>
+                                        <a href="javascript:void(0);">偃师市</a>
+                                        <a href="javascript:void(0);">伊滨区</a>
+                                        <a href="javascript:void(0);">伊川县</a>
                                     </div>
                                 </div>
                             </div>
@@ -1177,8 +1205,8 @@
                                     </a>
                                 </li>
                                 <li>
-                                    <a href="/static/search/#">
-                                        <i></i>
+                                    <a href="#" th:with="check = ${param.hasStock}">
+                                        <input id="showHasStock" type="checkbox" th:checked="${#strings.equals(check,'1')}">
                                         仅显示有货
                                     </a>
                                 </li>
@@ -2091,10 +2119,10 @@
     $(".sort_sku").click(function () {
         // 跳转到指定位置 sort=skuPrice_asc/desc
         var sortRule = $(this).attr("sortRule");
-        if($(this).hasClass("asc")){
-            searchSku("sort",sortRule+"_"+"desc");
-        }else{
-            searchSku("sort",sortRule+"_"+"asc");
+        if ($(this).hasClass("asc")) {
+            searchSku("sort", sortRule + "_" + "desc");
+        } else {
+            searchSku("sort", sortRule + "_" + "asc");
         }
         // 禁用默认行为
         return false;
@@ -2195,6 +2223,27 @@
             })
         }
     }
+    //按照价格进行查询
+    $("#skuPriceSearchBtn").click(function () {
+        //1、拼上价格区间的查询条件
+        var from = $("#skuPriceFrom").val();
+        var to = $("#skuPriceTo").val();
+
+        var query = from + "_" + to;
+
+        location.href = replaceAndAddParamVal(location.href,"skuPrice",query);
+    });
+    //显示有库存的
+    $("#showHasStock").change(function () {
+        if($(this).prop('checked')){
+            location.href = replaceAndAddParamVal(location.href,"hasStock",1);
+        }else{
+            //没选中
+            var re = eval('/[?|&](hasStock=)([^&]*)/gi');
+            location.href = (location.href+"").replace(re,'');
+        }
+        return false;
+    })
 
 
 </script>
