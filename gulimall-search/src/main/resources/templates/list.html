@@ -766,6 +766,11 @@
             </div>
         </div>
         <i><img src="/static/search/image/right-@1x.png" alt=""></i>
+        <!--面包屑功能-->
+        <div class="JD_ipone_one c">
+            <a th:href="${nav.link}" th:each="nav : ${result.navs}" class="qqq"><span th:text="${nav.navName}"></span>：<span th:text="${nav.navValue}"></span> × </a>
+        </div>
+        <i><img src="/static/search/image/right-@1x.png" alt=""></i>
     </div>
 </div>
 
@@ -2047,9 +2052,9 @@
         if (!hasQuestionMark) {
             location.href = location.href + "?" + name + "=" + value;
         } else {
-            //如果路径有参数，且追加的查询条件已经存在了
+            //如果路径有参数，且追加的查询条件已经存在了===》替换
             if (location.href.indexOf(name) != -1) {
-                location.href = replaceParamVal(location.href, name, value);
+                location.href = replaceAndAddParamVal(location.href,name,value,true)
             } else {//如果路径有参数，且追加的查询条件不存在了
                 location.href = location.href + "&" + name + "=" + value;
             }
@@ -2151,10 +2156,34 @@
         }
     }
 
+    // function replaceAndAddAttr(url, paramName, replaceVal) {
+    //     var oUrl = url.toString();
+    //     //1、如果没有就添加，有就替换；
+    //     if (oUrl.indexOf(paramName) != -1) {//有--->替换逻辑
+    //         // 首先可以保证是attrs属性。。 然后过来的参数val可能是1_10寸。 可以以_为分隔符。。然后判断attrs=_1是否存在，如果存在则将attrs=1.5存替换成attrs=1_10寸。
+    //         // attrs=1_5寸&attrs=2_16G:8G&  如果有"1_5寸" 则将其替换成新的。。 1_
+    //         let regex = '/[^_]+/g';
+    //         var array = replaceVal.match(regex);
+    //
+    //         if (oUrl.match(regexUrl) != null) {
+    //             var regexUrl = "/attrs=" + array[0] + "_[^&]*/";
+    //             var nUrl = oUrl.replace(regexUrl, paramName + "=" + replaceVal);
+    //             return nUrl;
+    //         } else {
+    //             var nUrl = oUrl + "&" + paramName + '=' + replaceVal;
+    //             return nUrl;
+    //         }
+    //     }else{
+    //         var nUrl = oUrl + "&" + paramName + '=' + replaceVal;
+    //         return nUrl;
+    //     }
+    //
+    // }
+
     function replaceAndAddParamVal(url, paramName, replaceVal, forceAdd) {
         var oUrl = url.toString();
         //1、如果没有就添加，有就替换；
-        if (oUrl.indexOf(paramName) != -1) {
+        if (oUrl.indexOf(paramName) != -1) {//有
             if (forceAdd) {
                 var nUrl = "";
                 if (oUrl.indexOf("?") != -1) {
@@ -2166,12 +2195,15 @@
 
                 return nUrl;
             } else {
+                // 替换
                 var re = eval('/(' + paramName + '=)([^&]*)/gi');
                 var nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
                 return nUrl;
             }
         } else {
+            // 无paramName
             var nUrl = "";
+            // 有其他参数
             if (oUrl.indexOf("?") != -1) {
                 nUrl = oUrl + "&" + paramName + '=' + replaceVal;
             } else {
