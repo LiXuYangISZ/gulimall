@@ -1045,10 +1045,25 @@
                 <div class="filter">
                     <!--综合排序-->
                     <div class="filter_top">
-                        <div class="filter_top_left">
-                            <a href="/static/search/#" class="sort_sku" sort="hotScore">综合排序</a>
-                            <a href="/static/search/#" class="sort_sku" sort="saleCount">销量</a>
-                            <a href="/static/search/#" class="sort_sku" sort="skuPrice">价格</a>
+                        <div class="filter_top_left" th:with="p = ${param.sort},priceRange = ${param.skuPrice}">
+                            <!--<a href="/static/search/#" class="sort_sku" sort="hotScore">综合排序</a>-->
+                            <!--<a href="/static/search/#" class="sort_sku" sort="saleCount">销量</a>-->
+                            <!--<a href="/static/search/#" class="sort_sku" sort="skuPrice">价格</a>-->
+
+                            <!--雷神的思路代码-->
+                            <a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"
+                               th:attr="style=${(#strings.isEmpty(p) || #strings.startsWith(p,'hotScore'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"
+                               sort="hotScore" href="/static/search/#"> 综合排序 [[${(!#strings.isEmpty(p) &&
+                                #strings.startsWith(p,'hotScore') && #strings.endsWith(p,'desc'))?'↓':'↑'}]] </a>
+                            <a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"
+                               th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'saleCount'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"
+                               sort="saleCount" href="/static/search/#">销量 [[${(!#strings.isEmpty(p) &&
+                                #strings.startsWith(p,'saleCount') && #strings.endsWith(p,'desc'))?'↓':'↑'}]]</a>
+                            <a th:class="${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice')&& #strings.endsWith(p,'desc'))?'sort_sku desc':'sort_sku'}"
+                               th:attr="style=${(!#strings.isEmpty(p) && #strings.startsWith(p,'skuPrice'))?'color: #FFF;border-color:#e4393c;background: #e4393c':'color: #333;border-color:#CCC;background: #fff'}"
+                               sort="skuPrice" href="/static/search/#">价格 [[${(!#strings.isEmpty(p) &&
+                                #strings.startsWith(p,'skuPrice')&& #strings.endsWith(p,'desc'))?'↓':'↑'}]]</a>
+
                             <!--TODO 之后可以加上评论数和新品-->
                             <a href="javascript:void(0);">评论数</a>
                             <a href="javascript:void(0);">新品</a>
@@ -1241,7 +1256,8 @@
                                 <em>共<b>[[${result.totalPages}]]</b>页&nbsp;&nbsp;到第</em>
                                 <input type="number" id="page_input" value="1" th:value="${param.pageNum}">
                                 <em>页</em>
-                                <a href="javascript:void(0)" th:onclick="|goPage(${result.totalPages})|" class="page_submit">确定</a>
+                                <a href="javascript:void(0)" th:onclick="|goPage(${result.totalPages})|"
+                                   class="page_submit">确定</a>
                             </span>
                         </div>
                     </div>
@@ -2039,87 +2055,88 @@
         var nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
         return nUrl;
     }
+
     // 页面跳转
     function goPage(totalPage) {
         var nextPage = $("#page_input").val();
-        if(nextPage <=0){
+        if (nextPage <= 0) {
             nextPage = 1;
         }
-        if(nextPage > totalPage){
+        if (nextPage > totalPage) {
             nextPage = totalPage;
         }
         $("#page_input").val(nextPage);
-        searchSku("pageNum",nextPage);
+        searchSku("pageNum", nextPage);
     }
 
     $(".sort_sku").click(function () {
         //1、当前被点击的元素变为选中状态
         //    color: #FFF; border-color: #e4393c; background: #e4393c;
         //改变当前元素以及兄弟元素的样式
-        changeStyle(this);
+        // changeStyle(this);
 
-        // // $(this).toggleClass("desc");
+        $(this).toggleClass("desc");
         // 2、跳转到指定位置 sort=skuPrice_asc/desc
         var sort = $(this).attr("sort");
-        sort =  $(this).hasClass("desc")?sort+"_desc":sort+"_asc";
-        location.href = replaceAndAddParamVal(location.href,"sort",sort);
+        sort = $(this).hasClass("desc") ? sort + "_desc" : sort + "_asc";
+        location.href = replaceAndAddParamVal(location.href, "sort", sort);
 
         //禁用默认行为
         return false;
     })
 
-    function changeStyle(ele){
+    function changeStyle(ele) {
         // 'color: #333;border-color:#CCC;background: #fff' 默认
         // 'color: #FFF;border-color:#e4393c;background: #e4393c' 高亮
-        $(".sort_sku").css({"color":"#333","border-color":"#CCC","background":"#FFF"});
-        $(".sort_sku").each(function(){
-            var text = $(this).text().replace("↓","").replace("↑","");
+        $(".sort_sku").css({"color": "#333", "border-color": "#CCC", "background": "#FFF"});
+        $(".sort_sku").each(function () {
+            var text = $(this).text().replace("↓", "").replace("↑", "");
             $(this).text(text);
         });
-        $(ele).css({"color":"#FFF","border-color":"#e4393c","background":"#e4393c"});
+        $(ele).css({"color": "#FFF", "border-color": "#e4393c", "background": "#e4393c"});
         //改变升降序
         $(ele).toggleClass("desc");//加上就是降序，不加就是升序
-        if($(ele).hasClass("desc")){
+        if ($(ele).hasClass("desc")) {
             //降序
-            var text = $(ele).text().replace("↓","").replace("↑","");
-            text = text+ "↓";
+            var text = $(ele).text().replace("↓", "").replace("↑", "");
+            text = text + "↓";
             $(ele).text(text);
-        }else{
-            var text = $(ele).text().replace("↓","").replace("↑","");
-            text = text+ "↑";
+        } else {
+            var text = $(ele).text().replace("↓", "").replace("↑", "");
+            text = text + "↑";
             $(ele).text(text);
         }
     }
 
-    function replaceAndAddParamVal(url, paramName, replaceVal,forceAdd) {
+    function replaceAndAddParamVal(url, paramName, replaceVal, forceAdd) {
         var oUrl = url.toString();
         //1、如果没有就添加，有就替换；
-        if(oUrl.indexOf(paramName)!=-1){
-            if(forceAdd){
+        if (oUrl.indexOf(paramName) != -1) {
+            if (forceAdd) {
                 var nUrl = "";
                 if (oUrl.indexOf("?") != -1) {
-                    nUrl = oUrl +"&"+paramName + '=' + replaceVal;
+                    nUrl = oUrl + "&" + paramName + '=' + replaceVal;
                 } else {
-                    nUrl = oUrl +"?"+paramName + '=' + replaceVal;
+                    nUrl = oUrl + "?" + paramName + '=' + replaceVal;
                 }
 
 
-                return  nUrl;
-            }else{
+                return nUrl;
+            } else {
                 var re = eval('/(' + paramName + '=)([^&]*)/gi');
                 var nUrl = oUrl.replace(re, paramName + '=' + replaceVal);
                 return nUrl;
             }
-        }else{
+        } else {
             var nUrl = "";
             if (oUrl.indexOf("?") != -1) {
-                nUrl = oUrl +"&"+paramName + '=' + replaceVal;
+                nUrl = oUrl + "&" + paramName + '=' + replaceVal;
             } else {
-                nUrl = oUrl +"?"+paramName + '=' + replaceVal;
+                nUrl = oUrl + "?" + paramName + '=' + replaceVal;
             }
 
 
-            return  nUrl;
+            return nUrl;
         }
 
 
