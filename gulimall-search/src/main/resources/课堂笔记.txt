@@ -86,11 +86,13 @@ GET product/_search
   "from": 0,
   "size": 1,
   "highlight": {
-    "fields": {"skuTitle": {}},
+    "fields": {
+      "skuTitle": {}
+    },
     "pre_tags": "<b sytel='color:red'>",
     "post_tags": "</b>"
   },
-    "aggs": {
+  "aggs": {
     "brand_agg": {
       "terms": {
         "field": "brandId",
@@ -142,7 +144,7 @@ GET product/_search
                 "size": 10
               }
             },
-            "attr_value_agg":{
+            "attr_value_agg": {
               "terms": {
                 "field": "attrs.attrValue",
                 "size": 10
@@ -153,6 +155,12 @@ GET product/_search
       }
     }
   }
+}
+
+POST _analyze
+{
+  "analyzer": "ik_max_word",
+  "text": "我是中国人"
 }
 
 # 模糊匹配
@@ -242,9 +250,10 @@ GET gulimall_product/_search
 ## 修改doc_values 为true
 GET product/_mapping
 
+DELETE gulimall_product
 
 # 新映射
-PUT gulimall_product
+PUT gulimall
 {
   "mappings": {
     "properties": {
@@ -293,7 +302,7 @@ PUT gulimall_product
         "type": "keyword"
       },
       "skuPrice": {
-        "type": "keyword"
+        "type": "double"
       },
       "skuTitle": {
         "type": "text",
@@ -306,17 +315,27 @@ PUT gulimall_product
   }
 }
 
-GET gulimall_product/_search
+GET gulimall/_search
 
 #迁移数据
 
 POST _reindex
 {
   "source": {
-    "index": "product"
+    "index": "gulimall_product"
   },
   "dest": {
+    "index": "gulimall"
+  }
+}
+
+POST _reindex
+{
+  "source": {
     "index": "gulimall_product"
+  },
+  "dest": {
+    "index": "gulimall_product2"
   }
 }
 
@@ -335,34 +354,216 @@ GET /_cat/health
 
 
 
+
+
 # 解除所有索引的只读锁定
-PUT /_all/_settings
-{"index.blocks.read_only_allow_delete": null}
+PUT /gulimall/_settings
+{
+  "index.blocks.read_only_allow_delete": false
+}
 # 使用通配符批量解除锁定
-PUT /auth-server-prd*/_settings?pretty
+PUT /gulimall/_settings?pretty
 {
-  "index.blocks.read_only_allow_delete": null
+  "index.blocks.read_only_allow_delete": false
 }
-
-PUT /gulimall_product/_settings
-{
-  "index.blocks.read_only_allow_delete": true
-}
-
-PUT /gulimall_product/_settings?pretty
-{
-  "index.blocks.read_only_allow_delete": null
-}
-
-
-GET _cluster/health?pretty&human
 
 
 # 查看磁盘占用情况
 GET _cat/nodes?v&h=name,ip,disk.total,disk.used,disk.avail,disk.used_percent
+
 
 # 查看分区情况
 GET _cat/shards
 
 # 查看节点情况
 GET _nodes/stats
+
+
+
+
+
+
+
+
+
+
+GET gulimall/_search
+{
+  "from": 0,
+  "size": 4,
+  "query": {
+    "bool": {
+      "filter": [
+        {
+          "term": {
+            "catalogId": {
+              "value": 225,
+              "boost": 1
+            }
+          }
+        },
+        {
+          "term": {
+            "brandId": {
+              "value": 5,
+              "boost": 1
+            }
+          }
+        }
+      ],
+      "adjust_pure_negative": true,
+      "boost": 1
+    }
+  },
+  "aggregations": {
+    "brand_agg": {
+      "terms": {
+        "field": "brandId",
+        "size": 50,
+        "min_doc_count": 1,
+        "shard_min_doc_count": 0,
+        "show_term_doc_count_error": false,
+        "order": [
+          {
+            "_count": "desc"
+          },
+          {
+            "_key": "asc"
+          }
+        ]
+      },
+      "aggregations": {
+        "brand_name_agg": {
+          "terms": {
+            "field": "brandName",
+            "size": 1,
+            "min_doc_count": 1,
+            "shard_min_doc_count": 0,
+            "show_term_doc_count_error": false,
+            "order": [
+              {
+                "_count": "desc"
+              },
+              {
+                "_key": "asc"
+              }
+            ]
+          }
+        },
+        "brand_img_agg": {
+          "terms": {
+            "field": "brandImg",
+            "size": 1,
+            "min_doc_count": 1,
+            "shard_min_doc_count": 0,
+            "show_term_doc_count_error": false,
+            "order": [
+              {
+                "_count": "desc"
+              },
+              {
+                "_key": "asc"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "catelog_agg": {
+      "terms": {
+        "field": "catalogId",
+        "size": 50,
+        "min_doc_count": 1,
+        "shard_min_doc_count": 0,
+        "show_term_doc_count_error": false,
+        "order": [
+          {
+            "_count": "desc"
+          },
+          {
+            "_key": "asc"
+          }
+        ]
+      },
+      "aggregations": {
+        "catelog_name_agg": {
+          "terms": {
+            "field": "catalogName",
+            "size": 1,
+            "min_doc_count": 1,
+            "shard_min_doc_count": 0,
+            "show_term_doc_count_error": false,
+            "order": [
+              {
+                "_count": "desc"
+              },
+              {
+                "_key": "asc"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "attr_agg": {
+      "nested": {
+        "path": "attrs"
+      },
+      "aggregations": {
+        "attr_id_agg": {
+          "terms": {
+            "field": "attrs.attrId",
+            "size": 50,
+            "min_doc_count": 1,
+            "shard_min_doc_count": 0,
+            "show_term_doc_count_error": false,
+            "order": [
+              {
+                "_count": "desc"
+              },
+              {
+                "_key": "asc"
+              }
+            ]
+          },
+          "aggregations": {
+            "attr_name_agg": {
+              "terms": {
+                "field": "attrs.attrName",
+                "size": 1,
+                "min_doc_count": 1,
+                "shard_min_doc_count": 0,
+                "show_term_doc_count_error": false,
+                "order": [
+                  {
+                    "_count": "desc"
+                  },
+                  {
+                    "_key": "asc"
+                  }
+                ]
+              }
+            },
+            "attr_value_agg": {
+              "terms": {
+                "field": "attrs.attrValue",
+                "size": 50,
+                "min_doc_count": 1,
+                "shard_min_doc_count": 0,
+                "show_term_doc_count_error": false,
+                "order": [
+                  {
+                    "_count": "desc"
+                  },
+                  {
+                    "_key": "asc"
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
