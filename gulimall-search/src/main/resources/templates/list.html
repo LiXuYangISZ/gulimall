@@ -768,7 +768,7 @@
         <i><img src="/static/search/image/right-@1x.png" alt=""></i>
         <!--面包屑功能-->
         <div class="JD_ipone_one c">
-            <a th:href="${nav.link}" th:each="nav : ${result.navs}" class="qqq"><span th:text="${nav.navName}"></span>：<span th:text="${nav.navValue}"></span> × </a>
+            <a th:href="${nav.link}" th:each="nav : ${result.navs}" class="qqq" style="background: #f3f3f3; border: 1px solid #DDD;"><span th:text="${nav.navName}"></span>：<span style="color: #e4393c" th:text="${nav.navValue}"></span> × </a>
         </div>
         <i><img src="/static/search/image/right-@1x.png" alt=""></i>
     </div>
