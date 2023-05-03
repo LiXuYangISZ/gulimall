@@ -12,6 +12,7 @@ import com.atguigu.gulimall.product.vo.back.AttrRespVo;
 import com.atguigu.gulimall.product.vo.back.AttrVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.product.service.AttrService;
@@ -88,9 +89,11 @@ public class AttrController {
 
     /**
      * 查询属性详情
+     * 【由于我们经常从Search远程调用此方法，所有可以为其加上缓存】
+     * @Cacheable(value = "attr",key = "'attrInfo:'+#root.args[0]")：将返回结果以attr分组->attrInfo:1 、attrInfo:2放置缓存。
      */
+    // @Cacheable(value = "attr",key = "'attrInfo:'+#root.args[0]")
     @GetMapping("/info/{attrId}")
-    //@RequiresPermissions("product:attr:info")
     public R info(@PathVariable("attrId") Long attrId){
 		AttrRespVo attrRespVo = attrService.getAttrInfo(attrId);
 

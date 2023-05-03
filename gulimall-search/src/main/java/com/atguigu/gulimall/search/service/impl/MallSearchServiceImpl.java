@@ -10,6 +10,7 @@ import com.atguigu.gulimall.search.constant.EsConstant;
 import com.atguigu.gulimall.search.feign.ProductFeignService;
 import com.atguigu.gulimall.search.service.MallSearchService;
 import com.atguigu.gulimall.search.vo.AttrResponseVo;
+import com.atguigu.gulimall.search.vo.BrandVo;
 import com.atguigu.gulimall.search.vo.SearchParam;
 import com.atguigu.gulimall.search.vo.SearchResult;
 import org.apache.commons.lang.StringUtils;
@@ -313,6 +314,8 @@ public class MallSearchServiceImpl implements MallSearchService {
                 String[] str = attr.split("_");
                 // TODO 目前只支持单属性检索。后续可以扩展多属性检索
                 navVo.setNavValue(str[1]);
+                // 向attrId列表中加入已经作为条件的id，从而让前端不再显示该条件！！！
+                result.getAttrIds().add(Long.valueOf(str[0]));
                 R r = productFeignService.getAttrInfo(Long.valueOf(str[0]));
                 if (r.getCode() == 0) {
                     AttrResponseVo attrVo = r.getDataByName("attr", new TypeReference <AttrResponseVo>() {
@@ -322,27 +325,59 @@ public class MallSearchServiceImpl implements MallSearchService {
                     navVo.setNavName(str[0]);
                 }
                 // 2.取消了这个面包屑之后，我们要跳转到的那个地方.将请求路径中对应属性的URL置空，然后拼接成新的URL
-                // http://search.gulimall.com/list.html?catalog3Id=225&attrs=15_海思
-                String url = null;
-                try {
-                    // 进行编码
-                    url = URLEncoder.encode(attr, "UTF-8");
-                    url = url.replace("+","%20");
-                    //TODO 1、如果同一个属性点了多遍，会重复添加（解决办法，每次追加的时候，判断name和value，如果都相等，则不再追加）
-                    // 2. 路径中有太多的1=1了。建议每次拼接路径前消除一部分，最多路径中允许同时存在2个   √
-                    url = param.getQueryString().replace("attrs=" + url, "1=1").replaceAll("&1=1","");
-                    // url = param.getQueryString().replace("attrs=" + url, "1=1");
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                // http://search.gulimall.com/list.html?catalog3Id=225&attrs=15_海思 attr--》brandId=xxx
+                String url = replaceQueryString(param,"attrs", attr);
                 navVo.setLink("http://search.gulimall.com/list.html?"+url);
                 return navVo;
             }).collect(Collectors.toList());
             result.setNavs(navVos);
         }
 
+        // 将品牌、分类加入到面包屑中
+        if(param.getBrandId()!=null && param.getBrandId().size() >0){
+            List <SearchResult.NavVo> navs = result.getNavs();
+            SearchResult.NavVo brandNav = new SearchResult.NavVo();
+            brandNav.setNavName("品牌");
+            // 远程查询所有品牌
+            R r = productFeignService.getBrandInfo(param.getBrandId());
+            if(r.getCode() == 0){
+                List <BrandVo> brands = r.getDataByName("brands", new TypeReference <List <BrandVo>>() {
+                });
+                StringBuilder sb = new StringBuilder();
+                String url = "";
+                // TODO 一个商品只可能对应一个品牌的！！！ brandId=12:15:17 这样才可以。后续开了多选，需要修改代码逻辑
+                for (BrandVo brand : brands) {
+                    sb.append(brand.getName()+"；");
+                    url = replaceQueryString(param, "brandId", brand.getBrandId() + "");
+                }
+                brandNav.setNavValue(sb.toString());
+                brandNav.setLink("http://search.gulimall.com/list.html?"+url);
+                navs.add(brandNav);
+            }
+
+
+        }
+
+        // TODO 分类：不需要导航取消
+
+
 
 
         return result;
+    }
+
+    private String replaceQueryString(SearchParam param,String name, String value) {
+        String url = null;
+        try {
+            // 进行编码
+            url = URLEncoder.encode(value, "UTF-8");
+            url = url.replace("+","%20");
+            //TODO 1、如果同一个属性点了多遍，会重复添加（解决办法，每次追加的时候，判断name和value，如果都相等，则不再追加）
+            // 2. 路径中有太多的1=1了。建议每次拼接路径前消除一部分，最多路径中允许同时存在2个   √
+            url = param.getQueryString().replace(name+"=" + url, "1=1").replaceAll("&1=1","");
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return url;
     }
 }

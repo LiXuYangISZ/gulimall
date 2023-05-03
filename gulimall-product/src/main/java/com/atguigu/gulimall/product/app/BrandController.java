@@ -1,6 +1,7 @@
 package com.atguigu.gulimall.product.app;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.atguigu.common.utils.PageUtils;
@@ -8,13 +9,11 @@ import com.atguigu.common.utils.R;
 import com.atguigu.common.valid.AddGroup;
 import com.atguigu.common.valid.UpdateGroup;
 import com.atguigu.common.valid.UpdateStatusGroup;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.product.entity.BrandEntity;
 import com.atguigu.gulimall.product.service.BrandService;
@@ -44,12 +43,23 @@ public class BrandController {
         return R.ok().put("page", page);
     }
 
+    /**
+     * 批量获取品牌信息
+     * @param brandIds
+     * @return
+     */
+    @GetMapping("/infos")
+    // @Cacheable(value = "brand",key = "#root.methodName")
+    public R getBrandInfo(@RequestParam("brandIds") List<Long> brandIds){
+        List <BrandEntity> brandEntities = brandService.listByIds(brandIds);
+        return R.ok().put("brands", brandEntities);
+    }
+
 
     /**
      * 信息
      */
     @RequestMapping("/info/{brandId}")
-    //@RequiresPermissions("product:brand:info")
     public R info(@PathVariable("brandId") Long brandId){
 		BrandEntity brand = brandService.getById(brandId);
 
