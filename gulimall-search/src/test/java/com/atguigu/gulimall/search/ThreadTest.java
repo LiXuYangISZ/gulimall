@@ -5,7 +5,7 @@ import java.util.concurrent.*;
 /**
  * @author lxy
  * @version 1.0
- * @Description
+ * @Description 线程池&异步编码学习
  * @date 2023/5/3 20:09
  */
 public class ThreadTest {
