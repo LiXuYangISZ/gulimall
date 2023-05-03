@@ -37,4 +37,10 @@ public interface ProductFeignService {
      */
     @GetMapping("/product/brand/info")
     R getBrandInfo(@RequestParam("brandId") Long brandId);
+
+    /**
+     * 获取分类信息信息【前台接口】
+     */
+    @GetMapping("/product/category/info")
+    R getCatelogInfo(@RequestParam("catId") Long catId);
 }

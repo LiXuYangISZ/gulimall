@@ -9,10 +9,7 @@ import com.atguigu.gulimall.search.config.GulimallElasticSearchConfig;
 import com.atguigu.gulimall.search.constant.EsConstant;
 import com.atguigu.gulimall.search.feign.ProductFeignService;
 import com.atguigu.gulimall.search.service.MallSearchService;
-import com.atguigu.gulimall.search.vo.AttrResponseVo;
-import com.atguigu.gulimall.search.vo.BrandVo;
-import com.atguigu.gulimall.search.vo.SearchParam;
-import com.atguigu.gulimall.search.vo.SearchResult;
+import com.atguigu.gulimall.search.vo.*;
 import org.apache.commons.lang.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.aspectj.weaver.ast.Var;
@@ -351,7 +348,23 @@ public class MallSearchServiceImpl implements MallSearchService {
             }
         }
 
-        // TODO 将分类加入到面包屑中（分类：不需要导航取消）
+        // 将分类加入到面包屑中
+        if(param.getCatalog3Id()!=null){
+            List <SearchResult.NavVo> navs = result.getNavs();
+            SearchResult.NavVo categoryNav = new SearchResult.NavVo();
+            categoryNav.setNavName("分类");
+            // 远程查询所有品牌
+            R r = productFeignService.getCatelogInfo(param.getCatalog3Id());
+            if (r.getCode() == 0) {
+                CategoryVo category = r.getDataByName("category", new TypeReference <CategoryVo>() {
+                });
+                // TODO 一个商品只可能对应一个分类的！！！ catalog3Id=12:15:17 这样才可以。后续开了多选，需要修改代码逻辑
+                String url = replaceQueryString(param, "catalog3Id", category.getCatId() + "");
+                categoryNav.setNavValue(category.getName());
+                categoryNav.setLink("http://search.gulimall.com/list.html?" + url);
+                navs.add(categoryNav);
+            }
+        }
 
         return result;
     }

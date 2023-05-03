@@ -738,7 +738,10 @@
 <!--手机-->
 <div class="JD_ipone">
     <div class="JD_ipone_bar">
-        <!--TODO 可以模仿京东，如果有分类则展示分类的层级。如果没有分类，则显示keyword值-->
+        <!--TODO 检索页面优化可以继续模仿京东。首先，进入分类页无非是三种情况。-->
+        <!--TODO ①通过点击商品分类进入，这时我们就展示商品层级，下方筛选区不展示分类。-->
+        <!--TODO ② 如果是通过关键字搜索进入，那么我们就展示出关键字。下方筛选区展示关于关键字的所有分类。-->
+        <!--TODO ③ 如果是直接进入list.html页面，没有携带任何参数，那么上方就粗糙的展示个全部商品，筛选区正常展示所有有关的品牌、属性、分类...-->
         <div class="JD_ipone_one a">
             <a href="/static/search/#">手机</a>
         </div>
@@ -821,7 +824,7 @@
                     </div>
                 </div>
                 <!--分类-->
-                <div class="JD_pre">
+                <div class="JD_pre" th:if="${#strings.isEmpty(param.catalog3Id)}">
                     <div class="sl_key">
                         <span><b>分类：</b></span>
                     </div>

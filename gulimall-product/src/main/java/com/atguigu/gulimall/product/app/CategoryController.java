@@ -6,11 +6,7 @@ import java.util.Map;
 
 import com.atguigu.common.utils.R;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.atguigu.gulimall.product.entity.CategoryEntity;
 import com.atguigu.gulimall.product.service.CategoryService;
@@ -50,6 +46,16 @@ public class CategoryController {
 		CategoryEntity category = categoryService.getById(catId);
 
         return R.ok().put("data", category);
+    }
+
+    /**
+     * 获取分类信息信息【前台接口】
+     */
+    @GetMapping("/info")
+    public R getCatelogInfo(@RequestParam("catId") Long catId){
+        CategoryEntity category = categoryService.getById(catId);
+
+        return R.ok().put("category", category);
     }
 
     /**
