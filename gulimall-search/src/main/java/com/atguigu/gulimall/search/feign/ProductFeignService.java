@@ -28,5 +28,13 @@ public interface ProductFeignService {
      * @return
      */
     @GetMapping("/product/brand/infos")
-    R getBrandInfo(@RequestParam("brandIds") List <Long> brandIds);
+    R getBrandInfos(@RequestParam("brandIds") List <Long> brandIds);
+
+    /**
+     * 获取单个品牌信息
+     * @param brandId
+     * @return
+     */
+    @GetMapping("/product/brand/info")
+    R getBrandInfo(@RequestParam("brandId") Long brandId);
 }

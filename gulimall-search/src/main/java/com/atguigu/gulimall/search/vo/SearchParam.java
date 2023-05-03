@@ -38,10 +38,14 @@ public class SearchParam {
      * 价格区间查询
      */
     private String skuPrice;
+    // /**
+    //  * 品牌id【可以多选】
+    //  */
+    // private List<Long> brandId;
     /**
-     * 品牌id【可以多选】
+     * 品牌id【只支持单选。之后如果开启品牌的多选，可以brandId=1:16:15这样设计】
      */
-    private List<Long> brandId;
+    private Long brandId;
     /**
      * 属性
      */

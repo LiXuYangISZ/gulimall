@@ -79,7 +79,7 @@ public class MallSearchServiceImpl implements MallSearchService {
             SearchResponse searchResponse = client.search(searchRequest, GulimallElasticSearchConfig.COMMON_OPTIONS);
 
             // 4.分析相应数据封装成我们需要的格式
-            searchResult = buildSearchResult(searchResponse,param);
+            searchResult = buildSearchResult(searchResponse, param);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -111,8 +111,8 @@ public class MallSearchServiceImpl implements MallSearchService {
             boolQueryBuilder.filter(QueryBuilders.termQuery("catalogId", param.getCatalog3Id()));
         }
         // 2.2.2 按照品牌id进行查询
-        if (param.getBrandId() != null && param.getBrandId().size() > 0) {
-            boolQueryBuilder.filter(QueryBuilders.termsQuery("brandId", param.getBrandId()));
+        if (param.getBrandId() != null) {
+            boolQueryBuilder.filter(QueryBuilders.termQuery("brandId", param.getBrandId()));
         }
 
         // 2.2.3 按照属性查询
@@ -224,12 +224,12 @@ public class MallSearchServiceImpl implements MallSearchService {
         // 1.返回的所有查询到的商品
         SearchHits hits = response.getHits();
         List <SkuEsModel> skuEsModels = new ArrayList <>();
-        if(hits.getHits()!=null && hits.getHits().length > 0){
+        if (hits.getHits() != null && hits.getHits().length > 0) {
             for (SearchHit hit : hits.getHits()) {
                 String source = hit.getSourceAsString();
                 SkuEsModel skuEsModel = JSON.parseObject(source, SkuEsModel.class);
                 // 设置搜索关键字高亮
-                if(StringUtils.isNotBlank(param.getKeyword())){
+                if (StringUtils.isNotBlank(param.getKeyword())) {
                     String skuTitleStr = hit.getHighlightFields().get("skuTitle").fragments()[0].string();
                     skuEsModel.setSkuTitle(skuTitleStr);
                 }
@@ -240,9 +240,9 @@ public class MallSearchServiceImpl implements MallSearchService {
 
         // 2.当前所有商品涉及到的所有属性信息
         List <SearchResult.AttrVo> attrVos = new ArrayList <>();
-        ParsedNested attrAgg= response.getAggregations().get("attr_agg");
+        ParsedNested attrAgg = response.getAggregations().get("attr_agg");
         ParsedLongTerms attrIdAgg = attrAgg.getAggregations().get("attr_id_agg");
-        if(attrIdAgg.getBuckets()!=null && attrIdAgg.getBuckets().size() > 0){
+        if (attrIdAgg.getBuckets() != null && attrIdAgg.getBuckets().size() > 0) {
             for (Terms.Bucket bucket : attrIdAgg.getBuckets()) {
                 SearchResult.AttrVo attrVo = new SearchResult.AttrVo();
                 //设置attrId
@@ -264,7 +264,7 @@ public class MallSearchServiceImpl implements MallSearchService {
         // 3.当前所有商品涉及到的所有品牌信息
         List <SearchResult.BrandVo> brandVos = new ArrayList <>();
         ParsedLongTerms brandAgg = response.getAggregations().get("brand_agg");
-        if(brandAgg.getBuckets()!=null && brandAgg.getBuckets().size() > 0){
+        if (brandAgg.getBuckets() != null && brandAgg.getBuckets().size() > 0) {
             for (Terms.Bucket bucket : brandAgg.getBuckets()) {
                 SearchResult.BrandVo brandVo = new SearchResult.BrandVo();
                 // 设置brandId
@@ -284,13 +284,13 @@ public class MallSearchServiceImpl implements MallSearchService {
         // 4.当前所有商品涉及到的所有分类信息
         List <SearchResult.CatalogVo> catalogVos = new ArrayList <>();
         ParsedLongTerms catelogAgg = response.getAggregations().get("catelog_agg");
-        if(catelogAgg.getBuckets()!=null && catelogAgg.getBuckets().size() >0){
+        if (catelogAgg.getBuckets() != null && catelogAgg.getBuckets().size() > 0) {
             for (Terms.Bucket bucket : catelogAgg.getBuckets()) {
                 SearchResult.CatalogVo catalogVo = new SearchResult.CatalogVo();
                 // 设置catalogId
                 catalogVo.setCatalogId(bucket.getKeyAsNumber().longValue());
                 // 得到子聚合
-                ParsedStringTerms catelogNameAgg  = bucket.getAggregations().get("catelog_name_agg");
+                ParsedStringTerms catelogNameAgg = bucket.getAggregations().get("catelog_name_agg");
                 // 设置catalogName
                 catalogVo.setCatalogName(catelogNameAgg.getBuckets().get(0).getKeyAsString());
                 catalogVos.add(catalogVo);
@@ -300,13 +300,13 @@ public class MallSearchServiceImpl implements MallSearchService {
 
         // 5.分页信息-页码、总记录数、总页码
         long total = hits.getTotalHits().value;
-        long pages = total % EsConstant.PRODUCT_PAGESIZE == 0 ? total / EsConstant.PRODUCT_PAGESIZE: total / EsConstant.PRODUCT_PAGESIZE +1;
+        long pages = total % EsConstant.PRODUCT_PAGESIZE == 0 ? total / EsConstant.PRODUCT_PAGESIZE : total / EsConstant.PRODUCT_PAGESIZE + 1;
         result.setTotal(total);
         result.setTotalPages(pages);
         result.setPageNum(param.getPageNum());
 
         // 6.构建面包屑导航功能
-        if (param.getAttrs()!=null&&param.getAttrs().size() > 0){
+        if (param.getAttrs() != null && param.getAttrs().size() > 0) {
             List <SearchResult.NavVo> navVos = param.getAttrs().stream().map(attr -> {
                 // 6.1 分析每个attrs传过来的查询数据值
                 SearchResult.NavVo navVo = new SearchResult.NavVo();
@@ -326,55 +326,46 @@ public class MallSearchServiceImpl implements MallSearchService {
                 }
                 // 2.取消了这个面包屑之后，我们要跳转到的那个地方.将请求路径中对应属性的URL置空，然后拼接成新的URL
                 // http://search.gulimall.com/list.html?catalog3Id=225&attrs=15_海思 attr--》brandId=xxx
-                String url = replaceQueryString(param,"attrs", attr);
-                navVo.setLink("http://search.gulimall.com/list.html?"+url);
+                String url = replaceQueryString(param, "attrs", attr);
+                navVo.setLink("http://search.gulimall.com/list.html?" + url);
                 return navVo;
             }).collect(Collectors.toList());
             result.setNavs(navVos);
         }
 
-        // 将品牌、分类加入到面包屑中
-        if(param.getBrandId()!=null && param.getBrandId().size() >0){
+        // 将品牌加入到面包屑中
+        if (param.getBrandId() != null) {
             List <SearchResult.NavVo> navs = result.getNavs();
             SearchResult.NavVo brandNav = new SearchResult.NavVo();
             brandNav.setNavName("品牌");
             // 远程查询所有品牌
             R r = productFeignService.getBrandInfo(param.getBrandId());
-            if(r.getCode() == 0){
-                List <BrandVo> brands = r.getDataByName("brands", new TypeReference <List <BrandVo>>() {
+            if (r.getCode() == 0) {
+                BrandVo brand = r.getDataByName("brand", new TypeReference <BrandVo>() {
                 });
-                StringBuilder sb = new StringBuilder();
-                String url = "";
                 // TODO 一个商品只可能对应一个品牌的！！！ brandId=12:15:17 这样才可以。后续开了多选，需要修改代码逻辑
-                for (BrandVo brand : brands) {
-                    sb.append(brand.getName()+"；");
-                    url = replaceQueryString(param, "brandId", brand.getBrandId() + "");
-                }
-                brandNav.setNavValue(sb.toString());
-                brandNav.setLink("http://search.gulimall.com/list.html?"+url);
+                String url = replaceQueryString(param, "brandId", brand.getBrandId() + "");
+                brandNav.setNavValue(brand.getName());
+                brandNav.setLink("http://search.gulimall.com/list.html?" + url);
                 navs.add(brandNav);
             }
-
-
         }
 
-        // TODO 分类：不需要导航取消
-
-
-
+        // TODO 将分类加入到面包屑中（分类：不需要导航取消）
 
         return result;
     }
 
-    private String replaceQueryString(SearchParam param,String name, String value) {
+    private String replaceQueryString(SearchParam param, String name, String value) {
         String url = null;
         try {
             // 进行编码
             url = URLEncoder.encode(value, "UTF-8");
-            url = url.replace("+","%20");
+            url = url.replace("+", "%20");
+            url = url.replace(";", "%3B");
             //TODO 1、如果同一个属性点了多遍，会重复添加（解决办法，每次追加的时候，判断name和value，如果都相等，则不再追加）
             // 2. 路径中有太多的1=1了。建议每次拼接路径前消除一部分，最多路径中允许同时存在2个   √
-            url = param.getQueryString().replace(name+"=" + url, "1=1").replaceAll("&1=1","");
+            url = param.getQueryString().replace(name + "=" + url, "1=1").replaceAll("&1=1", "");
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }

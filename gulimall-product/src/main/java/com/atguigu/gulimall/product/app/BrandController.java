@@ -50,9 +50,21 @@ public class BrandController {
      */
     @GetMapping("/infos")
     // @Cacheable(value = "brand",key = "#root.methodName")
-    public R getBrandInfo(@RequestParam("brandIds") List<Long> brandIds){
+    public R getBrandInfos(@RequestParam("brandIds") List<Long> brandIds){
         List <BrandEntity> brandEntities = brandService.listByIds(brandIds);
         return R.ok().put("brands", brandEntities);
+    }
+
+    /**
+     * 获取单个品牌信息
+     * @param brandId
+     * @return
+     */
+    @GetMapping("/info")
+    // @Cacheable
+    public R getBrandInfo(@RequestParam("brandId") Long brandId){
+        BrandEntity brand = brandService.getById(brandId);
+        return R.ok().put("brand", brand);
     }
 
 
