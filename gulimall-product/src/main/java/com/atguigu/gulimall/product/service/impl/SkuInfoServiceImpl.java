@@ -2,6 +2,7 @@ package com.atguigu.gulimall.product.service.impl;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
+import com.atguigu.gulimall.product.vo.front.SkuItemVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Service;
@@ -61,6 +62,20 @@ public class SkuInfoServiceImpl extends ServiceImpl <SkuInfoDao, SkuInfoEntity> 
     public List <SkuInfoEntity> getSkusBySpuId(Long spuId) {
         List <SkuInfoEntity> list = this.list(new LambdaQueryWrapper <SkuInfoEntity>().eq(SkuInfoEntity::getSpuId, spuId));
         return list;
+    }
+
+    @Override
+    public SkuItemVo item(Long skuId) {
+        // 1、获取SKU基本信息 pms_sku_info
+
+        // 2、获取SKU图片信息 pms_sku_images
+
+        // 3、获取SPU销售属性组合
+
+        // 4、获取SPU的介绍
+
+        // 5、获取SPU的规格参数信息
+        return null;
     }
 
 }
