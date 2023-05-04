@@ -829,6 +829,7 @@
 									</p>
 									<table>
 										<tr th:each="group : ${item.groupAttrs}">
+											<!--这里基本介绍只显示了同属性组,前四个属性.正常来说是要按照quickShow来显示的!-->
 											<td th:each="attr,iterStat : ${group.groupValue}" th:if="${iterStat.index < 4}">
 												<a href="javascript:void(0);"> [[${attr.attrName}]]：[[${attr.attrValue}]] </a>
 											</td>

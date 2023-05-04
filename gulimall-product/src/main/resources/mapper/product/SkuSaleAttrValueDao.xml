@@ -13,29 +13,34 @@
         <result property="attrSort" column="attr_sort"/>
     </resultMap>
 
+    <!--<resultMap id="skuItemSaleAttrVo" type="com.atguigu.gulimall.product.vo.front.SkuItemVo$SkuItemSaleAttrVo">-->
+    <!--    <result column="attr_id" property="attrId"/>-->
+    <!--    <result column="attr_name" property="attrName"/>-->
+    <!--    <collection property="attrValues" ofType="java.lang.String">-->
+    <!--        <result column="attr_value"/>-->
+    <!--    </collection>-->
+    <!--</resultMap>-->
+    <!--<select id="getSaleAttrsBySpuId" resultMap="skuItemSaleAttrVo">-->
+    <!--    select DISTINCT ssav.`attr_id`,ssav.`attr_name`,ssav.`attr_value`-->
+    <!--    from `pms_sku_info` info-->
+    <!--    left join `pms_sku_sale_attr_value` ssav-->
+    <!--    on info.`sku_id` = ssav.`sku_id`-->
+    <!--    where info.`spu_id` = #{spuId}-->
+    <!--</select>-->
+    <!-- 另外一种思路,使用GroupBy-->
     <resultMap id="skuItemSaleAttrVo" type="com.atguigu.gulimall.product.vo.front.SkuItemVo$SkuItemSaleAttrVo">
         <result column="attr_id" property="attrId"/>
         <result column="attr_name" property="attrName"/>
-        <collection property="attrValues" ofType="java.lang.String">
-            <result column="attr_value"/>
-        </collection>
+        <result column="value_str" property="valueStr"/>
     </resultMap>
     <select id="getSaleAttrsBySpuId" resultMap="skuItemSaleAttrVo">
-        select DISTINCT ssav.`attr_id`,ssav.`attr_name`,ssav.`attr_value`
-        from `pms_sku_info` info
-        left join `pms_sku_sale_attr_value` ssav
-        on info.`sku_id` = ssav.`sku_id`
-        where info.`spu_id` = #{spuId}
+        SELECT ssav.`attr_id`,ssav.`attr_name`,GROUP_CONCAT(DISTINCT ssav.`attr_value`) value_str
+        FROM `pms_sku_info` info
+        LEFT JOIN `pms_sku_sale_attr_value` ssav
+        ON info.`sku_id` = ssav.`sku_id`
+        WHERE info.`spu_id` =  #{spuId}
+        GROUP BY ssav.`attr_id`,ssav.`attr_name`;
     </select>
-    <!-- 另外一种思路,使用GroupBy-->
-    <!--<select id="getSaleAttrsBySpuId" resultMap="skuItemSaleAttrVo">-->
-    <!--    SELECT ssav.`attr_id`,ssav.`attr_name`,GROUP_CONCAT(DISTINCT ssav.`attr_value`)-->
-    <!--    FROM `pms_sku_info` info-->
-    <!--    LEFT JOIN `pms_sku_sale_attr_value` ssav-->
-    <!--    ON info.`sku_id` = ssav.`sku_id`-->
-    <!--    WHERE info.`spu_id` =  #{spuId}-->
-    <!--    GROUP BY ssav.`attr_id`,ssav.`attr_name`;-->
-    <!--</select>-->
 
 
 </mapper>

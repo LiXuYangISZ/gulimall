@@ -63,7 +63,14 @@ public class SkuItemVo {
          * 属性名称
          */
         private String attrName;
+        /**
+         * 属性值列表
+         */
         private List <String> attrValues;
+        /**
+         * 属性值的Str形式
+         */
+        private String valueStr;
     }
 
     /**
