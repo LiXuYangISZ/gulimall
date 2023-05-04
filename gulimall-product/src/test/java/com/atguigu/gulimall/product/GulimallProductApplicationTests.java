@@ -1,6 +1,7 @@
 package com.atguigu.gulimall.product;
 
 import com.atguigu.gulimall.product.dao.AttrGroupDao;
+import com.atguigu.gulimall.product.dao.SkuSaleAttrValueDao;
 import com.atguigu.gulimall.product.entity.BrandEntity;
 import com.atguigu.gulimall.product.service.BrandService;
 import com.atguigu.gulimall.product.service.CategoryService;
@@ -36,6 +37,9 @@ public class GulimallProductApplicationTests {
     @Autowired
     AttrGroupDao attrGroupDao;
 
+    @Autowired
+    SkuSaleAttrValueDao skuSaleAttrValueDao;
+
     @Test
     public void contextLoads() {
         BrandEntity brand = new BrandEntity();
@@ -64,6 +68,12 @@ public class GulimallProductApplicationTests {
     public void testAttrGroupDao(){
         List <SkuItemVo.SpuItemAttrGroupVo> attrGroupWithAttrs = attrGroupDao.getAttrGroupWithAttrsBySpuId(100L, 225L);
         System.out.println(attrGroupWithAttrs);
+    }
+
+    @Test
+    public void testSkuSaleAttrDao(){
+        List <SkuItemVo.SkuItemSaleAttrVo> saleAttrsBySpuId = skuSaleAttrValueDao.getSaleAttrsBySpuId(15L);
+        System.out.println(saleAttrsBySpuId);
     }
 
     // @Resource
