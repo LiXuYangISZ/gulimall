@@ -20,6 +20,11 @@ public class SkuItemVo {
      * SKU基本信息
      */
     SkuInfoEntity skuInfo;
+
+    /**
+     * 库存
+     */
+    Boolean hasStock = true;
     /**
      * SKU图片信息
      */
