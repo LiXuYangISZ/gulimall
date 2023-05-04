@@ -1,8 +1,10 @@
 package com.atguigu.gulimall.product;
 
+import com.atguigu.gulimall.product.dao.AttrGroupDao;
 import com.atguigu.gulimall.product.entity.BrandEntity;
 import com.atguigu.gulimall.product.service.BrandService;
 import com.atguigu.gulimall.product.service.CategoryService;
+import com.atguigu.gulimall.product.vo.front.SkuItemVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
@@ -31,6 +33,9 @@ public class GulimallProductApplicationTests {
     @Autowired
     StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    AttrGroupDao attrGroupDao;
+
     @Test
     public void contextLoads() {
         BrandEntity brand = new BrandEntity();
@@ -53,6 +58,12 @@ public class GulimallProductApplicationTests {
     public void testFindCatelogPath(){
         Long[] path = categoryService.findCatelogPath(225L);
         log.info("path:{}", Arrays.asList(path));
+    }
+
+    @Test
+    public void testAttrGroupDao(){
+        List <SkuItemVo.SpuItemAttrGroupVo> attrGroupWithAttrs = attrGroupDao.getAttrGroupWithAttrsBySpuId(100L, 225L);
+        System.out.println(attrGroupWithAttrs);
     }
 
     // @Resource

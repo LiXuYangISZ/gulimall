@@ -4,6 +4,7 @@ import com.atguigu.gulimall.product.entity.SkuImagesEntity;
 import com.atguigu.gulimall.product.entity.SkuInfoEntity;
 import com.atguigu.gulimall.product.entity.SpuInfoDescEntity;
 import lombok.Data;
+import lombok.ToString;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
  * @Description 商品详细信息
  * @date 2023/5/4 10:27
  */
+@Data
 public class SkuItemVo {
     /**
      * SKU基本信息
@@ -21,7 +23,7 @@ public class SkuItemVo {
     /**
      * SKU图片信息
      */
-    SkuImagesEntity skuImages;
+    List<SkuImagesEntity> skuImages;
     /**
      * SPU销售属性
      */
@@ -38,6 +40,7 @@ public class SkuItemVo {
      * 销售属性
      */
     @Data
+    @ToString
     public static class SkuItemSaleAttrVo{
         /**
          * 属性id
@@ -54,6 +57,7 @@ public class SkuItemVo {
      * SPU规格组
      */
     @Data
+    @ToString
     public static class SpuItemAttrGroupVo{
         /**
          * 属性组名称
@@ -69,6 +73,7 @@ public class SkuItemVo {
      * 基本规格属性
      */
     @Data
+    @ToString
     public static class SpuBaseAttrVo{
         /**
          * 属性名称

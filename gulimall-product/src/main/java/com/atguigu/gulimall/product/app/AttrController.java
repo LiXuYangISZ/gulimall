@@ -92,7 +92,7 @@ public class AttrController {
      * 【由于我们经常从Search远程调用此方法，所有可以为其加上缓存】
      * @Cacheable(value = "attr",key = "'attrInfo:'+#root.args[0]")：将返回结果以attr分组->attrInfo:1 、attrInfo:2放置缓存。
      */
-    // @Cacheable(value = "attr",key = "'attrInfo:'+#root.args[0]")
+    @Cacheable(value = "attr",key = "'attrInfo:'+#root.args[0]")
     @GetMapping("/info/{attrId}")
     public R info(@PathVariable("attrId") Long attrId){
 		AttrRespVo attrRespVo = attrService.getAttrInfo(attrId);

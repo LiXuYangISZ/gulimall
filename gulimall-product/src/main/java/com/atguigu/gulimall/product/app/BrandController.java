@@ -49,7 +49,7 @@ public class BrandController {
      * @return
      */
     @GetMapping("/infos")
-    // @Cacheable(value = "brand",key = "#root.methodName")
+    // @Cacheable(value = "brand",key = "'attrInfo:'+#root.args[0]")
     public R getBrandInfos(@RequestParam("brandIds") List<Long> brandIds){
         List <BrandEntity> brandEntities = brandService.listByIds(brandIds);
         return R.ok().put("brands", brandEntities);
@@ -61,7 +61,7 @@ public class BrandController {
      * @return
      */
     @GetMapping("/info")
-    // @Cacheable
+    @Cacheable(value = "brand",key = "'brandInfo:'+#root.args[0]")
     public R getBrandInfo(@RequestParam("brandId") Long brandId){
         BrandEntity brand = brandService.getById(brandId);
         return R.ok().put("brand", brand);
