@@ -1,11 +1,16 @@
 package com.atguigu.gulimall.product.vo.front;
 
+import com.atguigu.common.valid.AddGroup;
+import com.atguigu.common.valid.UpdateGroup;
+import com.atguigu.gulimall.product.entity.BrandEntity;
 import com.atguigu.gulimall.product.entity.SkuImagesEntity;
 import com.atguigu.gulimall.product.entity.SkuInfoEntity;
 import com.atguigu.gulimall.product.entity.SpuInfoDescEntity;
+import com.atguigu.gulimall.product.vo.back.BrandVo;
 import lombok.Data;
 import lombok.ToString;
 
+import javax.validation.constraints.NotBlank;
 import java.util.List;
 
 /**
@@ -20,7 +25,10 @@ public class SkuItemVo {
      * SKU基本信息
      */
     SkuInfoEntity skuInfo;
-
+    /**
+     * 商品品牌
+     */
+    BrandEntity brand;
     /**
      * 库存
      */
@@ -88,5 +96,9 @@ public class SkuItemVo {
          * 属性值
          */
         private String attrValue;
+        /**
+         * 快速展示【是否展示在介绍上；0-否 1-是】
+         */
+        private Integer quickShow;
     }
 }

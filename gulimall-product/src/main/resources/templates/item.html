@@ -366,7 +366,7 @@
 					</div>
 					<div class="crumb-item sep">></div>
 					<div class="crumb-item">
-						华为Mate 10
+						[[${item.brand.name}]]
 					</div>
 				</div>
 
@@ -825,40 +825,12 @@
 							<li class="jieshoa actives" id="li1">
 								<div class="shanpinsssss">
 									<p>
-										<a href="/static/item/#">品牌:华为（HUAWEI）</a>
+										<a href="javascript:void(0);" th:onclick="|goBrandPage(${item.brand.brandId})|">品牌: <span style="color: #5e69ad">[[${item.brand.name}]]</span></a>
 									</p>
 									<table>
-										<tr>
-											<td>
-												<a href="/static/item/##">商品名称：华为Mate 10</a>
-											</td>
-											<td>
-												<a href="/static/item/##">商品毛重：0.58kg</a>
-											</td>
-											<td>
-												<a href="/static/item/##">商品编号：5544038</a>
-											</td>
-											<td>
-												<a href="/static/item/##">商品产地：中国大陆</a>
-											</td>
-										</tr>
-										<tr>
-											<td>
-												<a href="/static/item/##">系统：安卓（Android）</a>
-											</td>
-											<td>
-												<a href="/static/item/##">前置摄像头像素：800万-1599万</a>
-											</td>
-											<td>
-												<a href="/static/item/##">后置摄像头像素：2000万及以上，1200万-1999万</a>
-											</td>
-											<td>
-												<a href="/static/item/##">机身内存：128GB</a>
-											</td>
-										</tr>
-										<tr>
-											<td colspan="4">
-												<a href="/static/item/##">全面屏，双卡双待，指纹识别，Type-C，VoLTE，2K屏，拍照神器，支持NFC，商务手机，安全手机，分辨率10</a>
+										<tr th:each="group : ${item.groupAttrs}">
+											<td th:each="attr,iterStat : ${group.groupValue}" th:if="${iterStat.index < 4}">
+												<a href="javascript:void(0);"> [[${attr.attrName}]]：[[${attr.attrValue}]] </a>
 											</td>
 										</tr>
 									</table>
@@ -1509,6 +1481,10 @@
 	<script src="/static/item/js/jquery1.9.js" type="text/javascript" charset="utf-8"></script>
 	<script src="/static/item/js/js.js" type="text/javascript" charset="utf-8"></script>
 	<script type="text/javascript">
+		function goBrandPage(brandId) {
+ 			location.href = "http://search.gulimall.com/list.html?brandId="+brandId;
+ 			return false;
+		}
 	</script>
 
 </html>

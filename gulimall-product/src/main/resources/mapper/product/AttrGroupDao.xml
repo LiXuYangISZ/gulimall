@@ -19,11 +19,12 @@
         <collection property="groupValue" ofType="com.atguigu.gulimall.product.vo.front.SkuItemVo$SpuBaseAttrVo">
             <result property="attrName" column="attr_name"></result>
             <result property="attrValue" column="attr_value"></result>
+            <result property="quickShow" column="quick_show"></result>
         </collection>
     </resultMap>
     <select id="getAttrGroupWithAttrsBySpuId"
             resultMap="spuItemAttrGroupVo">
-        SELECT pav.`spu_id`,pag.`attr_group_id`,pag.`attr_group_name`,pav.`attr_id`,pav.`attr_name`,pav.`attr_value`
+        SELECT pav.`spu_id`,pag.`attr_group_id`,pag.`attr_group_name`,pav.`attr_id`,pav.`attr_name`,pav.`attr_value`,pav.`quick_show`
         FROM `pms_attr_group` pag
         LEFT JOIN `pms_attr_attrgroup_relation` paar
         ON pag.`attr_group_id` = paar.`attr_group_id`

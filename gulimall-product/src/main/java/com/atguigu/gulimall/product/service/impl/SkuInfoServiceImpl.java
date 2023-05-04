@@ -2,9 +2,7 @@ package com.atguigu.gulimall.product.service.impl;
 
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.common.utils.Query;
-import com.atguigu.gulimall.product.entity.SkuImagesEntity;
-import com.atguigu.gulimall.product.entity.SpuImagesEntity;
-import com.atguigu.gulimall.product.entity.SpuInfoDescEntity;
+import com.atguigu.gulimall.product.entity.*;
 import com.atguigu.gulimall.product.service.*;
 import com.atguigu.gulimall.product.vo.front.SkuItemVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -21,7 +19,6 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.atguigu.gulimall.product.dao.SkuInfoDao;
-import com.atguigu.gulimall.product.entity.SkuInfoEntity;
 
 
 @Service("skuInfoService")
@@ -38,6 +35,9 @@ public class SkuInfoServiceImpl extends ServiceImpl <SkuInfoDao, SkuInfoEntity> 
 
     @Autowired
     SkuSaleAttrValueService skuSaleAttrValueService;
+
+    @Autowired
+    BrandService brandService;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -88,6 +88,7 @@ public class SkuInfoServiceImpl extends ServiceImpl <SkuInfoDao, SkuInfoEntity> 
         skuItemVo.setSkuInfo(skuInfo);
         Long spuId = skuInfo.getSpuId();
         Long catalogId = skuInfo.getCatalogId();
+        Long brandId = skuInfo.getBrandId();
         // 2、获取SKU图片信息 pms_sku_images
         List<SkuImagesEntity> skuImages = skuImagesService.getImagesBySkuId(skuId);
         skuItemVo.setSkuImages(skuImages);
@@ -100,6 +101,9 @@ public class SkuInfoServiceImpl extends ServiceImpl <SkuInfoDao, SkuInfoEntity> 
         // 5、获取SPU的规格参数信息
         List<SkuItemVo.SpuItemAttrGroupVo> attrGroups = attrGroupService.getAttrGroupWithAttrsBySpuId(spuId,catalogId);
         skuItemVo.setGroupAttrs(attrGroups);
+        // 6、商品品牌
+        BrandEntity brand = brandService.getById(brandId);
+        skuItemVo.setBrand(brand);
         return skuItemVo;
     }
 
