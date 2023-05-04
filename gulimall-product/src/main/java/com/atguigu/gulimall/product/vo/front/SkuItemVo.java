@@ -12,6 +12,7 @@ import lombok.ToString;
 
 import javax.validation.constraints.NotBlank;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author lxy
@@ -64,14 +65,20 @@ public class SkuItemVo {
          */
         private String attrName;
         /**
-         * 属性值列表
+         * 属性值和SkuIds 列表
          */
-        private List <String> attrValues;
-        /**
-         * 属性值的Str形式
-         */
-        private String valueStr;
+        private List<AttrValueWithSkuIdVo> attrValues;
     }
+
+    /**
+     * 属性值和SkuIdsVo
+     */
+    @Data
+    public static class AttrValueWithSkuIdVo {
+        private String attrValue;
+        private String skuIds;
+    }
+
 
     /**
      * SPU规格组
