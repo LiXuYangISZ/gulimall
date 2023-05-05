@@ -8,11 +8,16 @@ import com.atguigu.gulimall.product.vo.front.SkuItemVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ThreadPoolExecutor;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -38,6 +43,9 @@ public class SkuInfoServiceImpl extends ServiceImpl <SkuInfoDao, SkuInfoEntity> 
 
     @Autowired
     BrandService brandService;
+
+    @Autowired
+    ThreadPoolExecutor threadPoolExecutor;
 
     @Override
     public PageUtils queryPage(Map <String, Object> params) {
@@ -80,30 +88,62 @@ public class SkuInfoServiceImpl extends ServiceImpl <SkuInfoDao, SkuInfoEntity> 
         return list;
     }
 
+    /**
+     * 为商品详情添加缓存
+     * TODO 后期后台增加商品删除和修改功能了,可以在那些方法上加 @CacheEvict 来移除缓存~
+     * @param skuId
+     * @return
+     */
+    @Cacheable(value = "item",key = "'itemInfo'+#root.args[0]")
     @Override
-    public SkuItemVo item(Long skuId) {
+    public SkuItemVo item(Long skuId){
         SkuItemVo skuItemVo = new SkuItemVo();
-        // 1、获取SKU基本信息 pms_sku_info
-        SkuInfoEntity skuInfo = this.getById(skuId);
-        skuItemVo.setSkuInfo(skuInfo);
-        Long spuId = skuInfo.getSpuId();
-        Long catalogId = skuInfo.getCatalogId();
-        Long brandId = skuInfo.getBrandId();
-        // 2、获取SKU图片信息 pms_sku_images
-        List<SkuImagesEntity> skuImages = skuImagesService.getImagesBySkuId(skuId);
-        skuItemVo.setSkuImages(skuImages);
-        // 3、获取SPU销售属性组合
-        List<SkuItemVo.SkuItemSaleAttrVo> saleAttrs = skuSaleAttrValueService.getSaleAttrsBySpuId(spuId);
-        skuItemVo.setSaleAttrs(saleAttrs);
-        // 4、获取SPU的介绍(下方一堆介绍图)
-        SpuInfoDescEntity spuInfo = spuInfoDescService.getById(spuId);
-        skuItemVo.setSpuInfoDesc(spuInfo);
-        // 5、获取SPU的规格参数信息
-        List<SkuItemVo.SpuItemAttrGroupVo> attrGroups = attrGroupService.getAttrGroupWithAttrsBySpuId(spuId,catalogId);
-        skuItemVo.setGroupAttrs(attrGroups);
-        // 6、商品品牌
-        BrandEntity brand = brandService.getById(brandId);
-        skuItemVo.setBrand(brand);
+
+        CompletableFuture <SkuInfoEntity> infoFuture = CompletableFuture.supplyAsync(() -> {
+            // 1、获取SKU基本信息 pms_sku_info
+            SkuInfoEntity skuInfo = this.getById(skuId);
+            skuItemVo.setSkuInfo(skuInfo);
+            return skuInfo;
+        }, threadPoolExecutor);
+
+        CompletableFuture <Void> saleAttrFuture = infoFuture.thenAcceptAsync((res) -> {
+            // 3、获取SPU销售属性组合
+            List <SkuItemVo.SkuItemSaleAttrVo> saleAttrs = skuSaleAttrValueService.getSaleAttrsBySpuId(res.getSpuId());
+            skuItemVo.setSaleAttrs(saleAttrs);
+        }, threadPoolExecutor);
+
+        CompletableFuture <Void> descFuture = infoFuture.thenAcceptAsync((res) -> {
+            // 4、获取SPU的介绍(下方一堆介绍图)
+            SpuInfoDescEntity spuInfo = spuInfoDescService.getById(res.getSpuId());
+            skuItemVo.setSpuInfoDesc(spuInfo);
+        }, threadPoolExecutor);
+
+        CompletableFuture <Void> baseAttrFuture = infoFuture.thenAcceptAsync((res) -> {
+            // 5、获取SPU的规格参数信息
+            List <SkuItemVo.SpuItemAttrGroupVo> attrGroups = attrGroupService.getAttrGroupWithAttrsBySpuId(res.getSpuId(), res.getCatalogId());
+            skuItemVo.setGroupAttrs(attrGroups);
+        }, threadPoolExecutor);
+
+        CompletableFuture <Void> brandFuture = infoFuture.thenAcceptAsync((res) -> {
+            // 6、商品品牌
+            BrandEntity brand = brandService.getById(res.getBrandId());
+            skuItemVo.setBrand(brand);
+        }, threadPoolExecutor);
+
+        // 获取SKU图片信息的,无需使用infoFuture的结果,所有可以另开一个异步任务!
+        CompletableFuture <Void> imageFuture = CompletableFuture.runAsync(() -> {
+            // 2、获取SKU图片信息 pms_sku_images
+            List <SkuImagesEntity> skuImages = skuImagesService.getImagesBySkuId(skuId);
+            skuItemVo.setSkuImages(skuImages);
+        }, threadPoolExecutor);
+
+        // 等待所有任务都完成[由于infoFuture被其他任务所依赖着,所有其他任务完成他肯定也完成了~]
+        try {
+            CompletableFuture.allOf(saleAttrFuture,descFuture,baseAttrFuture,brandFuture,imageFuture).get();
+        } catch (Exception e) {
+            log.error("查询商品详情失败~,原因:{}",e);
+        }
+
         return skuItemVo;
     }
 
