@@ -63,6 +63,10 @@ spring:
           uri: lb://gulimall-search
           predicates:
             - Host=search.gulimall.com
+        - id: gulimall_auth_route #检索网关
+          uri: lb://gulimall-auth-server
+          predicates:
+            - Host=auth.gulimall.com
 ## 断言              前端路径                                   经过uri后                                 经过过滤器后（最终跳转的uri）
 ## /api/**          http://localhost:88/api/captcha.jpg  ===> http://localhost:8080/api/captcha.jpg ==》http://localhost:8080/renren-fast/captcha.jpg
 ## /api/product/**  http://localhost:88/api/product/category/list/tree ===》http://localhost:10000/api/product/category/list/tree ===》http://localhost:10000/product/category/list/tree
