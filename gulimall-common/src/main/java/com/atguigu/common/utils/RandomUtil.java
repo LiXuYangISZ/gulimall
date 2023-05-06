@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.thirdparty.util;
+package com.atguigu.common.utils;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;

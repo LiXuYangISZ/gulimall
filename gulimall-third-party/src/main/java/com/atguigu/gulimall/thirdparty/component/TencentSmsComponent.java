@@ -42,7 +42,7 @@ public class TencentSmsComponent {
      */
     private String signName;
 
-    public boolean sendSms(String phoneNum, String code,String time) {
+    public boolean sendSms(String phoneNum, String code,String minute) {
 
         try {
             /* 必要步骤：
@@ -103,7 +103,7 @@ public class TencentSmsComponent {
             req.setTemplateId(templateId);
 
             /* 模板参数: 模板参数的个数需要与 TemplateId 对应模板的变量个数保持一致，若无模板参数，则设置为空 */
-            String[] templateParamSet = {code,time};
+            String[] templateParamSet = {code,minute};
             req.setTemplateParamSet(templateParamSet);
 
             /* 下发手机号码，采用 E.164 标准，+[国家或地区码][手机号]
