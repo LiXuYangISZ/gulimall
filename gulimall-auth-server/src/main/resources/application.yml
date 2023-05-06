@@ -9,3 +9,9 @@ spring:
     cache: false
 server:
   port: 20000
+#国阳云短信服务
+gyyun:
+  sms:
+    appCode: c65ad05f5bb84ed582bc3eea030fcf2e
+    smsSignId: 1cbd183649c2470493e9de7326d56a4b
+    templateId: a09602b817fd47e59e7c6e603d3f088d

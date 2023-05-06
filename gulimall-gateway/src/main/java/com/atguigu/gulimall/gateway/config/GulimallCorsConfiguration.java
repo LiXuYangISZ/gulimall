@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.gulimall.gateway.config;
+package com.atguigu.gulimall.gateway.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
