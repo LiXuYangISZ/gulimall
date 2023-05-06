@@ -1,4 +1,6 @@
-package com.atguigu.gulimall.authserver.utils;
+package com.atguigu.gulimall.thirdparty.util;
+
+import com.atguigu.gulimall.thirdparty.config.MailConfigProperties;
 
 import javax.mail.*;
 import javax.mail.internet.InternetAddress;

@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.authserver.utils;
+package com.atguigu.gulimall.thirdparty.config;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;
@@ -7,7 +7,7 @@ import org.springframework.stereotype.Component;
 /**
  * @author lxy
  * @version 1.0
- * @Description
+ * @Description 邮件发送配置类
  * @date 2023/5/6 15:41
  */
 @Component
