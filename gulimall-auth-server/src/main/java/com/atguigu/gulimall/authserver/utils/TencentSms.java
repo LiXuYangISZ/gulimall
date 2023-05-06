@@ -9,13 +9,20 @@ import com.tencentcloudapi.common.profile.HttpProfile;
 import com.tencentcloudapi.sms.v20210111.SmsClient;
 import com.tencentcloudapi.sms.v20210111.models.SendSmsRequest;
 import com.tencentcloudapi.sms.v20210111.models.SendSmsResponse;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 
 /**
  * Tencent Cloud Sms Sendsms
  */
-public class SendSmsByTencent {
-    public static boolean sendSms(String phoneNum, String templateCode, String code,String time) {
+@Component
+public class TencentSms {
+
+    @Autowired
+    TencentSmsConfigProperties smsConfigProperties;
+
+    public boolean sendSms(String phoneNum, String code,String time) {
 
             try {
                 /* 必要步骤：
@@ -24,7 +31,7 @@ public class SendSmsByTencent {
                  * 你也可以直接在代码中写死密钥对，但是小心不要将代码复制、上传或者分享给他人，
                  * 以免泄露密钥对危及你的财产安全。
                  * SecretId、SecretKey 查询: https://console.cloud.tencent.com/cam/capi */
-                Credential cred = new Credential("AKIDuiOyueGUkjgeR0MYcZBj8azM6uYYQI3d", "Ws1FwyqStGczOk1997pYFtRvHY7dCmZG");
+                Credential cred = new Credential(smsConfigProperties.getSecretId(),smsConfigProperties.getSecretKey());
 
                 // 实例化一个http选项，可选，没有特殊需求可以跳过
                 HttpProfile httpProfile = new HttpProfile();
@@ -65,18 +72,15 @@ public class SendSmsByTencent {
 
                 /* 短信应用ID: 短信SdkAppId在 [短信控制台] 添加应用后生成的实际SdkAppId，示例如1400006666 */
                 // 应用 ID 可前往 [短信控制台](https://console.cloud.tencent.com/smsv2/app-manage) 查看
-                String sdkAppId = "1400774243";
-                req.setSmsSdkAppId(sdkAppId);
+                req.setSmsSdkAppId(smsConfigProperties.getSdkAppId());
 
                 /* 短信签名内容: 使用 UTF-8 编码，必须填写已审核通过的签名 */
                 // 签名信息可前往 [国内短信](https://console.cloud.tencent.com/smsv2/csms-sign) 或 [国际/港澳台短信](https://console.cloud.tencent.com/smsv2/isms-sign) 的签名管理查看
-                String signName = "传智健康abcd公众号";
-                req.setSignName(signName);
+                req.setSignName(smsConfigProperties.getSignName());
 
                 /* 模板 ID: 必须填写已审核通过的模板 ID */
                 // 模板 ID 可前往 [国内短信](https://console.cloud.tencent.com/smsv2/csms-template) 或 [国际/港澳台短信](https://console.cloud.tencent.com/smsv2/isms-template) 的正文模板管理查看
-                String templateId = templateCode;
-                req.setTemplateId(templateId);
+                req.setTemplateId(smsConfigProperties.getTemplateCode());
 
                 /* 模板参数: 模板参数的个数需要与 TemplateId 对应模板的变量个数保持一致，若无模板参数，则设置为空 */
                 String[] templateParamSet = {code,time};

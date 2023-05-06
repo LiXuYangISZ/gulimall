@@ -9,8 +9,6 @@ import java.util.Properties;
  * 发邮件工具类
  */
 public final class MailUtils {
-    private static final String USER = "2422737092@qq.com"; // 发件人称号，同邮箱地址
-    private static final String PASSWORD = "cfznjonpuhlndhfj"; // 如果是qq邮箱可以使户端授权码，或者登录密码
 
     /**
      *
@@ -26,9 +24,9 @@ public final class MailUtils {
             props.put("mail.smtp.host", "smtp.qq.com");
 
             // 发件人的账号
-            props.put("mail.user", USER);
+            props.put("mail.user", MailConfigProperties.USER);
             //发件人的密码
-            props.put("mail.password", PASSWORD);
+            props.put("mail.password", MailConfigProperties.PASSWORD);
 
             // 构建授权信息，用于进行SMTP进行身份验证
             Authenticator authenticator = new Authenticator() {
@@ -68,10 +66,10 @@ public final class MailUtils {
     }
 
     public static void main(String[] args) throws Exception { // 做测试用
-        for (int i = 0; i<100;i++){
-            MailUtils.sendMail("2384973743@qq.com","你好啊，大头,我正在用代码给你发送邮件哈哈哈。","测试邮件");
+        // for (int i = 0; i<100;i++){
+            MailUtils.sendMail("2422737092@qq.com","你好啊，大头,我正在用代码给你发送邮件哈哈哈。","测试邮件");
             System.out.println("发送成功");
-        }
+        // }
 
     }
 
