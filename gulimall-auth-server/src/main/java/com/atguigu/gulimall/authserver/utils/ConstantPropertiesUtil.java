@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.utils;
+package com.atguigu.gulimall.authserver.utils;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Value;

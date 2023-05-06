@@ -1,7 +1,4 @@
-package com.atguigu.gulimall.controller;
-
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+package com.atguigu.gulimall.authserver.controller;
 
 /**
  * @author lxy

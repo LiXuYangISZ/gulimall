@@ -1,7 +1,6 @@
-package com.atguigu.gulimall;
+package com.atguigu.gulimall.authserver;
 
-import com.atguigu.gulimall.utils.ConstantPropertiesUtil;
-import com.atguigu.gulimall.utils.SmsUtil;
+import com.atguigu.gulimall.authserver.utils.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
