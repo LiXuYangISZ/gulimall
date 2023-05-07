@@ -76,6 +76,7 @@ public class IndexController {
                            Model model,
                            RedirectAttributes redirectAttributes,
                            HttpSession session){
+        // 1、基本信息校验
         if(result.hasErrors()){
             // 校验失败，转发到注册页
             Map <String, String> errors = result.getFieldErrors().stream().collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
@@ -86,7 +87,20 @@ public class IndexController {
             return "redirect:http://auth.gulimall.com/register.html";
         }
 
-        // 调用远程服务进行注册
+        // 2、验证码校验
+        String code = vo.getCode();
+        String redisCode = redisTemplate.opsForValue().get(AuthServerConstant.SMS_CODE_CACHE_PREFIX + vo.getPhone());
+        if (StringUtils.isBlank(redisCode) || !code.equals(redisCode.split("_")[0])) {
+            Map <String, String> errors = new HashMap <>();
+            errors.put("code","验证码错误");
+            redirectAttributes.addFlashAttribute("errors",errors);
+            return "redirect:http://auth.gulimall.com/register.html";
+        }
+        // 3、调用远程服务进行注册
+
+
+        //删除验证码
+        redisTemplate.delete(AuthServerConstant.SMS_CODE_CACHE_PREFIX + vo.getPhone());
 
         // 注册成功跳转到登录页
         return "redirect:/login.html";
