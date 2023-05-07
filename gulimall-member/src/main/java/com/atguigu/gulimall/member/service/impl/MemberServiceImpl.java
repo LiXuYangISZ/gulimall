@@ -6,6 +6,7 @@ import com.atguigu.gulimall.member.service.MemberLevelService;
 import com.atguigu.gulimall.member.vo.MemberRegisterVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -45,11 +46,14 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         Long levelId = memberLevelService.getDefaultLevel();
         member.setLevelId(levelId);
         member.setNickname(vo.getUserName());
-        // TODO 密码加密存储
-        member.setPassword(vo.getPassword());
+        // 密码加密存储
+        BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+        member.setPassword(passwordEncoder.encode(vo.getPassword()));
         member.setMobile(vo.getPhone());
         // 默认头像
         member.setHeader("https://blog-photos-lxy.oss-cn-hangzhou.aliyuncs.com/img/202304271224987.png");
+        member.setStatus(1);
+        member.setSourceType(0);
 
         this.baseMapper.insert(member);
     }
