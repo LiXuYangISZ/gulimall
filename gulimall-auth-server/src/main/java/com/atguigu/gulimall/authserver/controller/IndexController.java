@@ -5,16 +5,27 @@ import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.common.utils.R;
 import com.atguigu.common.utils.RandomUtil;
 import com.atguigu.gulimall.authserver.feign.ThirdPartFeignService;
+import com.atguigu.gulimall.authserver.vo.UserRegisterVo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * @author lxy
@@ -48,6 +59,37 @@ public class IndexController {
         redisTemplate.opsForValue().set(AuthServerConstant.SMS_CODE_CACHE_PREFIX+phone,code+"_"+System.currentTimeMillis(),AuthServerConstant.SMS_CODE_EXPIRATION_TIME, TimeUnit.MINUTES);
         thirdPartFeignService.sendCode(phone, code,AuthServerConstant.SMS_CODE_EXPIRATION_TIME.toString());
         return R.ok();
+    }
+
+    /**
+     * // 转发：请求路径不变，重定向，请求路径改变~
+     * // RedirectAttributes redirectAttributes：模拟重定向携带数据
+     * //重定向携带数据，利用session原理。将数据放在session中。只要跳到下一个页面取出这个数据以后，session里面的数据就会删掉
+     * //TODO 分布式下的session问题。
+     * @param vo
+     * @param result
+     * @param model
+     * @return
+     */
+    @PostMapping("/register")
+    public String register(@Valid UserRegisterVo vo, BindingResult result,
+                           Model model,
+                           RedirectAttributes redirectAttributes,
+                           HttpSession session){
+        if(result.hasErrors()){
+            // 校验失败，转发到注册页
+            Map <String, String> errors = result.getFieldErrors().stream().collect(Collectors.toMap(FieldError::getField, FieldError::getDefaultMessage));
+            // model.addAttribute("errors",errors);
+            //使用转发，报错：Request method 'POST' not supported
+            //原因：用户注册->/regist[post]----》转发/reg.html（路径映射默认都是get方式访问的。）
+            redirectAttributes.addFlashAttribute("errors",errors);
+            return "redirect:http://auth.gulimall.com/register.html";
+        }
+
+        // 调用远程服务进行注册
+
+        // 注册成功跳转到登录页
+        return "redirect:/login.html";
     }
 
 
