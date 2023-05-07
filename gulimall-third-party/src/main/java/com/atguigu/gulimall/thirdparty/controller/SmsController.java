@@ -31,8 +31,8 @@ public class SmsController {
      */
     @GetMapping("/sendCode")
     public R sendCode(@RequestParam("phone") String phone,@RequestParam("code") String code,@RequestParam("minute") String minute){
-        // tencentSmsComponent.sendSms(phone,code,minute);
-        MailUtils.sendMail(phone,"您的注册验证码为 <b><font color=blue>"+code+"</font><b>，请在页面中输入完成验证。为保障您的帐户安全，请在"+minute+"分钟内完成验证，否则验证码将自动失效。\n","谷粒商城注册验证码");
+        tencentSmsComponent.sendSms(phone,code,minute);
+        // MailUtils.sendMail(phone,"您的注册验证码为 <b><font color=blue>"+code+"</font><b>，请在页面中输入完成验证。为保障您的帐户安全，请在"+minute+"分钟内完成验证，否则验证码将自动失效。\n","谷粒商城注册验证码");
         System.out.println("验证码发送成功:"+code);
         return R.ok();
     }

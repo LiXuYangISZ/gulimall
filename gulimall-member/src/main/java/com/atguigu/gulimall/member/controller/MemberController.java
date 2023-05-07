@@ -3,6 +3,9 @@ package com.atguigu.gulimall.member.controller;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.atguigu.common.exception.BizCodeEnum;
+import com.atguigu.gulimall.member.exception.PhoneExistException;
+import com.atguigu.gulimall.member.exception.UsernameExistException;
 import com.atguigu.gulimall.member.feign.CouponFeignService;
 import com.atguigu.gulimall.member.vo.MemberRegisterVo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,8 +51,10 @@ public class MemberController {
     public R register(@RequestBody MemberRegisterVo vo){
         try {
             memberService.register(vo);
-        }catch (Exception e){
-            e.printStackTrace();
+        }catch (PhoneExistException p){
+            return R.error(BizCodeEnum.PHONE_UP_EXCEPTION.getCode(),BizCodeEnum.PHONE_UP_EXCEPTION.getMessage());
+        }catch (UsernameExistException u){
+            return R.error(BizCodeEnum.USER_EXIST_EXCEPTION.getCode(),BizCodeEnum.USER_EXIST_EXCEPTION.getMessage());
         }
 
         return R.ok();

@@ -4,6 +4,7 @@ import com.atguigu.common.constant.authserver.AuthServerConstant;
 import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.common.utils.R;
 import com.atguigu.common.utils.RandomUtil;
+import com.atguigu.gulimall.authserver.feign.MemberFeignService;
 import com.atguigu.gulimall.authserver.feign.ThirdPartFeignService;
 import com.atguigu.gulimall.authserver.vo.UserRegisterVo;
 import org.apache.commons.lang.StringUtils;
@@ -41,6 +42,9 @@ public class IndexController {
 
     @Autowired
     StringRedisTemplate redisTemplate;
+
+    @Autowired
+    MemberFeignService memberFeignService;
 
     @ResponseBody
     @GetMapping("/sms/sendCode")
@@ -97,13 +101,17 @@ public class IndexController {
             return "redirect:http://auth.gulimall.com/register.html";
         }
         // 3、调用远程服务进行注册
-
-
+        R r = memberFeignService.register(vo);
+        if(r.getCode() != 0){//注册失败
+            Map <String, String> errors = new HashMap <>();
+            errors.put("msg", (String) r.get("msg"));
+            redirectAttributes.addFlashAttribute("errors",errors);
+            return "redirect:http://auth.gulimall.com/register.html";
+        }
         //删除验证码
         redisTemplate.delete(AuthServerConstant.SMS_CODE_CACHE_PREFIX + vo.getPhone());
-
         // 注册成功跳转到登录页
-        return "redirect:/login.html";
+        return "redirect:http://auth.gulimall.com/login.html";
     }
 
 

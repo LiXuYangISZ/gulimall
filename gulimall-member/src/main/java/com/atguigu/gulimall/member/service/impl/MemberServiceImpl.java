@@ -45,7 +45,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         // 设置默认等级
         Long levelId = memberLevelService.getDefaultLevel();
         member.setLevelId(levelId);
-        member.setNickname(vo.getUserName());
+        member.setUsername(vo.getUserName());
         // 密码加密存储
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         member.setPassword(passwordEncoder.encode(vo.getPassword()));
