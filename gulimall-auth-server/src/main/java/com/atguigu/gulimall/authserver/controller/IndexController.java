@@ -1,11 +1,13 @@
 package com.atguigu.gulimall.authserver.controller;
 
+import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.constant.authserver.AuthServerConstant;
 import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.common.utils.R;
 import com.atguigu.common.utils.RandomUtil;
 import com.atguigu.gulimall.authserver.feign.MemberFeignService;
 import com.atguigu.gulimall.authserver.feign.ThirdPartFeignService;
+import com.atguigu.gulimall.authserver.vo.UserLoginVo;
 import com.atguigu.gulimall.authserver.vo.UserRegisterVo;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -112,6 +114,19 @@ public class IndexController {
         redisTemplate.delete(AuthServerConstant.SMS_CODE_CACHE_PREFIX + vo.getPhone());
         // 注册成功跳转到登录页
         return "redirect:http://auth.gulimall.com/login.html";
+    }
+
+    @PostMapping("/login")
+    public String login(UserLoginVo vo,RedirectAttributes redirectAttributes){
+        R r = memberFeignService.login(vo);
+        if(r.getCode() == 0){
+            return "redirect:http://gulimall.com";
+        }else {
+            Map <String, String> errors = new HashMap <>();
+            errors.put("msg",r.getDataByName("msg",new TypeReference <String>(){}));
+            redirectAttributes.addFlashAttribute("errors",errors);
+            return "redirect:http://auth.gulimall.com/login.html";
+        }
     }
 
 

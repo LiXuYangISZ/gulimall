@@ -3,12 +3,15 @@ package com.atguigu.gulimall.member.service.impl;
 import com.atguigu.gulimall.member.exception.PhoneExistException;
 import com.atguigu.gulimall.member.exception.UsernameExistException;
 import com.atguigu.gulimall.member.service.MemberLevelService;
+import com.atguigu.gulimall.member.vo.MemberLoginVo;
 import com.atguigu.gulimall.member.vo.MemberRegisterVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.Map;
+import java.util.concurrent.RecursiveTask;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -45,7 +48,7 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         // 设置默认等级
         Long levelId = memberLevelService.getDefaultLevel();
         member.setLevelId(levelId);
-        member.setUsername(vo.getUserName());
+        member.setNickname(vo.getUserName());
         // 密码加密存储
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         member.setPassword(passwordEncoder.encode(vo.getPassword()));
@@ -56,6 +59,25 @@ public class MemberServiceImpl extends ServiceImpl<MemberDao, MemberEntity> impl
         member.setSourceType(0);
 
         this.baseMapper.insert(member);
+    }
+
+    @Override
+    public MemberEntity login(MemberLoginVo vo) {
+        String loginAccount = vo.getLoginAccount();
+        String password = vo.getPassword();
+        // 使用手机号、用户名、邮箱登录都可以
+        MemberEntity member = this.baseMapper.selectOne(new LambdaQueryWrapper <MemberEntity>().eq(MemberEntity::getMobile, loginAccount).or().eq(MemberEntity::getNickname, loginAccount).or().eq(MemberEntity::getEmail, loginAccount));
+        if(member != null){
+            String passwordDB = member.getPassword();
+            BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+            boolean flag = passwordEncoder.matches(password, passwordDB);
+            if(flag){
+                return member;
+            }else {
+                return null;
+            }
+        }
+        return null;
     }
 
     /**

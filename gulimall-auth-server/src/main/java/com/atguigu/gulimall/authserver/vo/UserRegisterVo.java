@@ -23,4 +23,5 @@ public class UserRegisterVo {
     private String phone;
     @NotEmpty(message = "验证码必须填写")
     private String code;
+    //TODO 可以尝试在表单中增加一个注册邮箱
 }
