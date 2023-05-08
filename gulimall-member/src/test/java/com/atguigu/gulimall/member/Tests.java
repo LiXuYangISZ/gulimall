@@ -33,8 +33,14 @@ public class Tests {
         // 优点：使用随机盐，且可以从加密后的字段推算出颜值，不需要存储盐值，不容易破解~
         BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
         String encode = passwordEncoder.encode("123456");
-        boolean matches = passwordEncoder.matches("123456", "$2a$10$4IP4F/2iFO2gbSvQKyJzGuI3RhU5Qdtr519KsyoXGAy.b7WT4P1RW");
+        String encode2 = passwordEncoder.encode("123456");
+        System.out.println("password1:"+encode);
+        System.out.println("password2:"+encode2);
+        boolean matches = passwordEncoder.matches("123456", encode);
+        boolean matches2 = passwordEncoder.matches("123456", encode2);
 
-        System.out.println(encode + "=>" + matches);
+
+        System.out.println("比对结果：" + matches);
+        System.out.println("比对结果：" + matches2);
     }
 }
