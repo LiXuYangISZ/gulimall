@@ -9,6 +9,7 @@ import com.atguigu.gulimall.member.exception.UsernameExistException;
 import com.atguigu.gulimall.member.feign.CouponFeignService;
 import com.atguigu.gulimall.member.vo.MemberLoginVo;
 import com.atguigu.gulimall.member.vo.MemberRegisterVo;
+import com.atguigu.gulimall.member.vo.SocialWeiBoAuthInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -73,6 +74,26 @@ public class MemberController {
             return R.error(BizCodeEnum.LOGINACCOUNT_PASSWORD_INVALID_EXCEPTION.getCode(),BizCodeEnum.LOGINACCOUNT_PASSWORD_INVALID_EXCEPTION.getMessage());
         }
         return R.ok();
+    }
+
+
+    /**
+     * 微博登录【社交登录】
+     * @param vo
+     * @return
+     */
+    @PostMapping("/oauth2/weibo/login")
+    public R weiboLogin(@RequestBody SocialWeiBoAuthInfo vo){
+        MemberEntity member = null;
+        try {
+            member = memberService.weiboLogin(vo);
+        } catch (Exception e) {
+            return R.error(BizCodeEnum.NETWORY_IS_BUSY.getCode(),BizCodeEnum.NETWORY_IS_BUSY.getMessage());
+        }
+        if(member == null){
+            return R.error(BizCodeEnum.NETWORY_IS_BUSY.getCode(),BizCodeEnum.NETWORY_IS_BUSY.getMessage());
+        }
+        return R.ok().setData(member);
     }
 
     /**

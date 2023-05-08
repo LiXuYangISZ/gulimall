@@ -33,8 +33,8 @@ public enum BizCodeEnum {
     PRODUCT_UP_EXCEPTION(11000,"商品上架异常"),
     USER_EXIST_EXCEPTION(15001,"用户名已经存在"),
     PHONE_UP_EXCEPTION(15002,"手机号已经存在"),
-    LOGINACCOUNT_PASSWORD_INVALID_EXCEPTION(15003,"账号名与密码不匹配，请重新输入");
-
+    LOGINACCOUNT_PASSWORD_INVALID_EXCEPTION(15003,"账号名与密码不匹配，请重新输入"),
+    NETWORY_IS_BUSY(15004,"网络繁忙，请稍后再试！");
 
 
 

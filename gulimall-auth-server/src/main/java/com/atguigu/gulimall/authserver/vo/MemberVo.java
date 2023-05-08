@@ -1,13 +1,10 @@
-package com.atguigu.gulimall.member.entity;
+package com.atguigu.gulimall.authserver.vo;
 
-import com.baomidou.mybatisplus.annotation.FieldFill;
-import com.baomidou.mybatisplus.annotation.TableField;
-import com.baomidou.mybatisplus.annotation.TableId;
-import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
+import lombok.ToString;
 
 import java.io.Serializable;
 import java.util.Date;
-import lombok.Data;
 
 /**
  * 会员
@@ -17,14 +14,13 @@ import lombok.Data;
  * @date 2023-02-27 21:28:27
  */
 @Data
-@TableName("ums_member")
-public class MemberEntity implements Serializable {
+@ToString
+public class MemberVo implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
 	 * id
 	 */
-	@TableId
 	private Long id;
 	/**
 	 * 会员等级id
@@ -93,12 +89,10 @@ public class MemberEntity implements Serializable {
 	/**
 	 * 注册时间
 	 */
-	@TableField(fill = FieldFill.INSERT)
 	private Date createTime;
 	/**
 	 * 注册时间
 	 */
-	@TableField(fill = FieldFill.INSERT_UPDATE)
 	private Date updateTime;
 
 }
