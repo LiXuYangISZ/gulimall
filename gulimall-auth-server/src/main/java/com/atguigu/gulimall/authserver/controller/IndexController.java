@@ -3,6 +3,7 @@ package com.atguigu.gulimall.authserver.controller;
 import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.constant.authserver.AuthServerConstant;
 import com.atguigu.common.exception.BizCodeEnum;
+import com.atguigu.common.to.MemberTo;
 import com.atguigu.common.utils.R;
 import com.atguigu.common.utils.RandomUtil;
 import com.atguigu.gulimall.authserver.feign.MemberFeignService;
@@ -117,15 +118,32 @@ public class IndexController {
     }
 
     @PostMapping("/login")
-    public String login(UserLoginVo vo,RedirectAttributes redirectAttributes){
+    public String login(UserLoginVo vo,RedirectAttributes redirectAttributes,HttpSession session){
         R r = memberFeignService.login(vo);
         if(r.getCode() == 0){
+            MemberTo member = r.getData(new TypeReference <MemberTo>(){});
+            // 成功，放到session中
+            session.setAttribute(AuthServerConstant.LOGIN_USER, member);
             return "redirect:http://gulimall.com";
         }else {
             Map <String, String> errors = new HashMap <>();
             errors.put("msg",r.getDataByName("msg",new TypeReference <String>(){}));
             redirectAttributes.addFlashAttribute("errors",errors);
             return "redirect:http://auth.gulimall.com/login.html";
+        }
+    }
+
+    /**
+     * 用户访问登录页
+     * @param session
+     * @return
+     */
+    @GetMapping("/login.html")
+    public String loginPage(HttpSession session){
+        if(session.getAttribute(AuthServerConstant.LOGIN_USER)!=null){
+            return "redirect:http://gulimall.com";
+        }else {
+            return "login";
         }
     }
 

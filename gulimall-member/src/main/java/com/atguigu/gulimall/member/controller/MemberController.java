@@ -74,7 +74,7 @@ public class MemberController {
         if(member == null){
             return R.error(BizCodeEnum.LOGINACCOUNT_PASSWORD_INVALID_EXCEPTION.getCode(),BizCodeEnum.LOGINACCOUNT_PASSWORD_INVALID_EXCEPTION.getMessage());
         }
-        return R.ok();
+        return R.ok().setData(member);
     }
 
 

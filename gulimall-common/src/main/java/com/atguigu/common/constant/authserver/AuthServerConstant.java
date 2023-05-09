@@ -13,4 +13,6 @@ public class AuthServerConstant {
     public static final String SMS_CODE_CACHE_PREFIX = "sms:code";
 
     public static final Long SMS_CODE_EXPIRATION_TIME = 30L;
+
+    public static final String LOGIN_USER = "loginUser";
 }

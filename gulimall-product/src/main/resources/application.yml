@@ -33,6 +33,8 @@ spring:
         type: redis
         redis:
             time-to-live: 3600000
+    session:
+        store-type: redis
 
 mybatis-plus:
     mapper-locations: classpath:/mapper/**/*.xml #配置xml位置

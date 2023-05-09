@@ -17,8 +17,8 @@
         <!--品牌官方网站-->
         <div class="min">
             <ul class="header_ul_left">
-                <li class="glyphicon glyphicon-home"><a href="/static/item/shouye.html" class="aa">京东首页</a></li>
-                <li class="glyphicon glyphicon-map-marker"><a href="/static/item/javascript:;">北京</a>
+                <li class="glyphicon glyphicon-home"><a href="/static/item/shouye.html" class="aa" style="margin-left: 5px;">京东首页</a></li>
+                <li class="glyphicon glyphicon-map-marker"><a href="/static/item/javascript:;" style="margin-left: 5px;">北京</a>
                     <ol id="beijing">
                         <li style="background: red;"><a href="/static/item/javascript:;" style="color: white;">北京</a>
                         </li>
@@ -60,8 +60,13 @@
                 </li>
             </ul>
             <ul class="header_ul_right">
-                <li style="border: 0;"><a href="/static/item/../登录页面\index.html" class="aa">你好，请登录</a></li>
-                <li><a href="/static/item/../注册页面\index.html" style="color: red;">免费注册</a> |</li>
+                <li style="border: 0; width: 80px;">
+                    <a href="javascript:void(0);" th:if="${session.loginUser!=null}" style="width: 210px;display:block;">欢迎：[[${session.loginUser==null ? '': session.loginUser.nickname}]]</a>
+                    <a href="http://auth.gulimall.com/login.html" th:if="${session.loginUser==null}">你好，请登录</a>
+                </li>
+                <li>
+                    <a href="http://auth.gulimall.com/register.html" style="color: red;" th:if="${session.loginUser == null}">免费注册</a>
+                </li>
                 <li><a href="/static/item/javascript:;" class="aa">我的订单</a> |</li>
                 <li class="jingdong"><a href="/static/item/javascript:;">我的京东</a><span
                         class="glyphicon glyphicon-menu-down">|</span>
@@ -258,7 +263,7 @@
     <nav>
         <div class="nav_min">
             <div class="nav_top">
-                <div class="nav_top_one"><a href="/static/item/#"><img src="/static/item/img/111.png"/></a></div>
+                <div class="nav_top_one"><a href="http://gulimall.com"><img src="/static/item/img/111.png"/></a></div>
                 <div class="nav_top_two"><input type="text"/>
                     <button>搜索</button>
                 </div>
@@ -612,7 +617,8 @@
                     <div class="box-attr clear" th:each="saleAttr : ${item.saleAttrs}">
                         <dl>
                             <dt>选择[[${saleAttr.attrName}]]</dt>
-                            <dd th:each="attrValueWithSkuId : ${saleAttr.attrValues}" style="padding-left: 0px; padding-right: 0px;">
+                            <dd th:each="attrValueWithSkuId : ${saleAttr.attrValues}"
+                                style="padding-left: 0px; padding-right: 0px;">
                                 <!--<a class="sku_attr_value" th:attr="skus=${attrValueWithSkuId.skuIds}" th:if="${#strings.listSplit(attrValueWithSkuId.skuIds,',')}">-->
                                 <!--	[[${attrValueWithSkuId.attrValue}]]-->
                                 <!--</a>-->
@@ -1306,7 +1312,7 @@
         </div>
     </div>
 </div>
-<div  id="footer" class="J_f mod_footer headera" data-tpl="mod_footer_tpl" data-inlazyqueue="true">
+<div id="footer" class="J_f mod_footer headera" data-tpl="mod_footer_tpl" data-inlazyqueue="true">
     <div class="mod_service">
         <div class="grid_c1 mod_service_inner">
             <ul class="mod_service_list">
@@ -1314,22 +1320,26 @@
                     <div class="mod_service_unit">
                         <h5 class="mod_service_tit mod_service_duo">多</h5>
                         <p class="mod_service_txt" style="width: 180px;">品类齐全，轻松购物</p>
-                    </div></li>
+                    </div>
+                </li>
                 <li class="mod_service_item">
                     <div class="mod_service_unit">
                         <h5 class="mod_service_tit mod_service_kuai">快</h5>
                         <p class="mod_service_txt" style="width: 180px;">多仓直发，极速配送</p>
-                    </div></li>
+                    </div>
+                </li>
                 <li class="mod_service_item">
                     <div class="mod_service_unit">
                         <h5 class="mod_service_tit mod_service_hao">好</h5>
                         <p class="mod_service_txt" style="width: 180px;">正品行货，精致服务</p>
-                    </div></li>
+                    </div>
+                </li>
                 <li class="mod_service_item">
                     <div class="mod_service_unit">
                         <h5 class="mod_service_tit mod_service_sheng">省</h5>
                         <p class="mod_service_txt" style="width: 180px;">天天低价，畅选无忧</p>
-                    </div></li>
+                    </div>
+                </li>
             </ul>
         </div>
     </div>
@@ -1533,7 +1543,7 @@
 </div>
 <div class="Fixedbian">
     <ul>
-        <li class="li1" ><a href="#">顶部</a></li>
+        <li class="li1"><a href="#">顶部</a></li>
     </ul>
 </div>
 <div class="gouwuchexiaguo">
@@ -1581,16 +1591,16 @@
         $(".sku_attr_value").parent().css({"border": "solid 1px #CCC"});
         $("a[class='sku_attr_value checked']").parent().css({"border": "solid 1px red"});
     });
-    $(function(){
-        $(window).scroll(function(){
-            if($(window).scrollTop()>100){
+    $(function () {
+        $(window).scroll(function () {
+            if ($(window).scrollTop() > 100) {
                 $(".li1").fadeIn(1500);
-            }else{
+            } else {
                 $(".li1").fadeOut(1500);
             }
         });
-        $(".li1").click(function(){
-            $('body,html').animate({scrollTop:0},1000);
+        $(".li1").click(function () {
+            $('body,html').animate({scrollTop: 0}, 1000);
             return false;
         });
     });
