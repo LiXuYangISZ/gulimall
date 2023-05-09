@@ -11,7 +11,7 @@ import org.springframework.session.web.http.DefaultCookieSerializer;
 /**
  * @author lxy
  * @version 1.0
- * @Description https://docs.spring.io/spring-session/reference/2.7/samples.html
+ * @Description Session配置类 https://docs.spring.io/spring-session/reference/2.7/samples.html
  * @date 2023/5/9 17:22
  */
 @Configuration
