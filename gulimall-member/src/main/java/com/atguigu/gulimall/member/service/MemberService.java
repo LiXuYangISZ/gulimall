@@ -2,6 +2,7 @@ package com.atguigu.gulimall.member.service;
 
 import com.atguigu.gulimall.member.vo.MemberLoginVo;
 import com.atguigu.gulimall.member.vo.MemberRegisterVo;
+import com.atguigu.gulimall.member.vo.SocialGiteeUserInfo;
 import com.atguigu.gulimall.member.vo.SocialWeiBoAuthInfo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.atguigu.common.utils.PageUtils;
@@ -25,5 +26,7 @@ public interface MemberService extends IService<MemberEntity> {
     MemberEntity login(MemberLoginVo vo);
 
     MemberEntity weiboLogin(SocialWeiBoAuthInfo vo) throws Exception;
+
+    MemberEntity giteeLogin(SocialGiteeUserInfo vo);
 }
 

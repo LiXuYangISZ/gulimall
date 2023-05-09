@@ -11,10 +11,7 @@ import com.atguigu.gulimall.member.exception.UsernameExistException;
 import com.atguigu.gulimall.member.feign.AuthServerFeignService;
 import com.atguigu.gulimall.member.service.MemberLevelService;
 import com.atguigu.gulimall.member.service.SocialUserService;
-import com.atguigu.gulimall.member.vo.MemberLoginVo;
-import com.atguigu.gulimall.member.vo.MemberRegisterVo;
-import com.atguigu.gulimall.member.vo.SocialWeiBoAuthInfo;
-import com.atguigu.gulimall.member.vo.SocialWeiBoUserInfo;
+import com.atguigu.gulimall.member.vo.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -72,9 +69,9 @@ public class MemberServiceImpl extends ServiceImpl <MemberDao, MemberEntity> imp
         member.setMobile(vo.getPhone());
         // 默认头像
         member.setHeader("https://blog-photos-lxy.oss-cn-hangzhou.aliyuncs.com/img/202304271224987.png");
-        member.setStatus(1);
-        member.setSourceType(0);
-
+        member.setStatus(MemberStateEnum.IN_USE.getCode());
+        member.setSourceType(SocialTypeEnum.TYPE_NONE.getCode());
+        member.setGender(GenderEnum.UNKNOW.getCode());
         this.baseMapper.insert(member);
     }
 
@@ -150,6 +147,53 @@ public class MemberServiceImpl extends ServiceImpl <MemberDao, MemberEntity> imp
             newSocialUser.setAccessToken(socialWeiBoUser.getAccess_token());
             newSocialUser.setExpiresIn(socialWeiBoUser.getExpires_in());
             socialUserService.updateById(newSocialUser);
+            MemberEntity member = this.getById(socialUser.getMemberId());
+            //返回用户信息，供前台展示
+            return member;
+        }
+    }
+
+    /**
+     * Gitee登录【登录和注册合并逻辑】
+     *
+     * @param giteeUserInfo
+     * @return
+     */
+    @Override
+    public MemberEntity giteeLogin(SocialGiteeUserInfo giteeUserInfo) {
+        String uid = giteeUserInfo.getId().toString();
+        SocialUserEntity socialUser = socialUserService.getSocialUserByUid(SocialTypeEnum.TYPE_GITEE.getCode(), uid);
+        if (socialUser == null) {
+            // 进入注册流程
+            // 保存member信息
+            MemberEntity member = new MemberEntity();
+            member.setNickname(giteeUserInfo.getLogin());
+            member.setUsername(giteeUserInfo.getName());
+            member.setSourceType(SocialTypeEnum.TYPE_GITEE.getCode());
+            member.setGender(GenderEnum.UNKNOW.getCode());
+            member.setHeader(giteeUserInfo.getAvatar_url());
+            member.setSign(giteeUserInfo.getBio());
+            member.setStatus(MemberStateEnum.IN_USE.getCode());
+            member.setLevelId(memberLevelService.getDefaultLevel());
+            // TODO 初始化密码(0-9，之后可以自行修改),当第一次用密码登录的时候，需要提醒重新设置
+            // member.setPassword("0123456789");
+            this.save(member);
+            // 保存social_use信息
+            socialUser = new SocialUserEntity();
+            socialUser.setMemberId(member.getId());
+            socialUser.setSocialType(SocialTypeEnum.TYPE_GITEE.getCode());
+            socialUser.setSocialId(giteeUserInfo.getId().toString());
+            socialUserService.save(socialUser);
+            return member;
+        } else {
+            // 进入登录流程
+            // TODO 更新下social_user表,其实我也不知道，把token和过期时间保存在库中啥意思。感觉应该是放到Redis中，当过期后，重新获取；用户退出后，移除~
+            // 咱们没有传送access_token，直接啥也不做吧~
+            // SocialUserEntity newSocialUser = new SocialUserEntity();
+            // newSocialUser.setId(socialUser.getId());
+            // newSocialUser.setAccessToken(socialWeiBoUser.getAccess_token());
+            // newSocialUser.setExpiresIn(socialWeiBoUser.getExpires_in());
+            // socialUserService.updateById(newSocialUser);
             MemberEntity member = this.getById(socialUser.getMemberId());
             //返回用户信息，供前台展示
             return member;

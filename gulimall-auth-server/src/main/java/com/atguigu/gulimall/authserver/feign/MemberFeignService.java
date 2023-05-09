@@ -1,6 +1,7 @@
 package com.atguigu.gulimall.authserver.feign;
 
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.authserver.vo.SocialGiteeUserInfo;
 import com.atguigu.gulimall.authserver.vo.SocialWeiBoAuthInfo;
 import com.atguigu.gulimall.authserver.vo.UserLoginVo;
 import com.atguigu.gulimall.authserver.vo.UserRegisterVo;
@@ -33,10 +34,18 @@ public interface MemberFeignService {
     R login(@RequestBody UserLoginVo vo);
 
     /**
-     * 微博登录【社交登录】
+     * 微博登录【社交登录&注册】
      * @param vo
      * @return
      */
     @PostMapping("/member/member/oauth2/weibo/login")
     R weiboLogin(@RequestBody SocialWeiBoAuthInfo vo);
+
+    /**
+     * Gitee【社交登录&注册】
+     * @param vo
+     * @return
+     */
+    @PostMapping("/member/member/oauth2/giteeLogin/login")
+    R giteeLogin(@RequestBody SocialGiteeUserInfo vo);
 }

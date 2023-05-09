@@ -3,15 +3,19 @@ package com.atguigu.common.constant.member;
 /**
  * @author lxy
  * @version 1.0
- * @Description
+ * @Description 社交账号类型
  * @date 2023/5/8 21:11
  */
 public enum SocialTypeEnum {
-    TYPE_WEIBO(0,"微博"),
-    TYPE_GITEE(1,"Gitee"),
-    TYPE_WECHAT(2,"微信"),
-    TYPE_QQ(3,"QQ"),
-    TYPE_GITHUB(4,"Github");
+    /**
+     * 原生：用户名密码的方式
+     */
+    TYPE_NONE(0,"原生"),
+    TYPE_WEIBO(1,"微博"),
+    TYPE_GITEE(2,"Gitee"),
+    TYPE_WECHAT(3,"微信"),
+    TYPE_QQ(4,"QQ"),
+    TYPE_GITHUB(5,"Github");
     private Integer code;
     private String msg;
 

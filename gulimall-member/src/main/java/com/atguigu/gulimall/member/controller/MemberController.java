@@ -9,6 +9,7 @@ import com.atguigu.gulimall.member.exception.UsernameExistException;
 import com.atguigu.gulimall.member.feign.CouponFeignService;
 import com.atguigu.gulimall.member.vo.MemberLoginVo;
 import com.atguigu.gulimall.member.vo.MemberRegisterVo;
+import com.atguigu.gulimall.member.vo.SocialGiteeUserInfo;
 import com.atguigu.gulimall.member.vo.SocialWeiBoAuthInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -78,7 +79,7 @@ public class MemberController {
 
 
     /**
-     * 微博登录【社交登录】
+     * 微博登录【社交登录&注册】
      * @param vo
      * @return
      */
@@ -93,6 +94,17 @@ public class MemberController {
         if(member == null){
             return R.error(BizCodeEnum.NETWORY_IS_BUSY.getCode(),BizCodeEnum.NETWORY_IS_BUSY.getMessage());
         }
+        return R.ok().setData(member);
+    }
+
+    /**
+     * Gitee【社交登录&注册】
+     * @param vo
+     * @return
+     */
+    @PostMapping("/oauth2/giteeLogin/login")
+    public R giteeLogin(@RequestBody SocialGiteeUserInfo vo){
+        MemberEntity member = memberService.giteeLogin(vo);
         return R.ok().setData(member);
     }
 
