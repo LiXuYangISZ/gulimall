@@ -77,9 +77,9 @@ public class Oauth2Controller {
                  * session原理
                  *      第一次登录，服务器创建session并保存（服务器、Redis）。把JSESSIONID返回给浏览器cookie并保存
                  *      以后浏览器访问这个网站，就会携带上这个网站的cookie；服务器通过查询就知道用户是否登录
-                 * TODO 存在的问题：
-                 *      1、默认发的令牌：JSESSIONID=abcdefg，作用域为当前域，子域无法共享~
-                 *      2、使用JSON的序列化方式来序列化对象数据到Redis中
+                 * 存在的问题：
+                 *      1、默认发的令牌：JSESSIONID=abcdefg，作用域为当前域，子域无法共享~      √
+                 *      2、使用JSON的序列化方式来序列化对象数据到Redis中                       √
                  *
                  * 自己想一下生活中的场景，比如我们登录JD后，下次就无须登录了，就是因为在浏览器的cookie中保存了，访问JD的令牌~ 每次访问时候进行携带
                  */
