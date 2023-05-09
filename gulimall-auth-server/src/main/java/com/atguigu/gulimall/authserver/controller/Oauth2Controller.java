@@ -2,6 +2,7 @@ package com.atguigu.gulimall.authserver.controller;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.atguigu.common.to.MemberTo;
 import com.atguigu.common.utils.HttpUtils;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.authserver.config.GiteeOauth2ConfigProperties;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpSession;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -47,7 +49,7 @@ public class Oauth2Controller {
      * @throws Exception
      */
     @GetMapping("/weibo/success")
-    public String weibo(@RequestParam("code") String code) throws Exception {
+    public String weibo(@RequestParam("code") String code, HttpSession session) throws Exception {
         Map <String, String> bodyMap = new HashMap <>();
         Map <String, String> queryMap = new HashMap <>();
         Map <String, String> headerMap = new HashMap <>();
@@ -68,8 +70,19 @@ public class Oauth2Controller {
             // 3.2 当前用户第n次进入网站，直接走登录流程
             R r = memberFeignService.weiboLogin(weiBoAuthInfo);
             if (r.getCode() == 0) {
-                MemberVo memberVo = r.getData(new TypeReference <MemberVo>() {
+                MemberTo memberVo = r.getData(new TypeReference <MemberTo>() {
                 });
+                session.setAttribute("loginUser",memberVo);
+                /**
+                 * session原理
+                 *      第一次登录，服务器创建session并保存（服务器、Redis）。把JSESSIONID返回给浏览器cookie并保存
+                 *      以后浏览器访问这个网站，就会携带上这个网站的cookie；服务器通过查询就知道用户是否登录
+                 * TODO 存在的问题：
+                 *      1、默认发的令牌：JSESSIONID=abcdefg，作用域为当前域，子域无法共享~
+                 *      2、使用JSON的序列化方式来序列化对象数据到Redis中
+                 *
+                 * 自己想一下生活中的场景，比如我们登录JD后，下次就无须登录了，就是因为在浏览器的cookie中保存了，访问JD的令牌~ 每次访问时候进行携带
+                 */
                 log.info("用户登录成功~~~ 用户信息:{}", memberVo.toString());
                 return "redirect:http://gulimall.com";
             } else {
@@ -90,7 +103,7 @@ public class Oauth2Controller {
      * @throws Exception
      */
     @GetMapping("/gitee/success")
-    public String gitee(@RequestParam("code") String code) throws Exception {
+    public String gitee(@RequestParam("code") String code,HttpSession session) throws Exception {
         Map <String, String> bodyMap = new HashMap <>();
         Map <String, String> queryMap = new HashMap <>();
         Map <String, String> headerMap = new HashMap <>();
@@ -113,8 +126,9 @@ public class Oauth2Controller {
             // 登录和注册
             R r = memberFeignService.giteeLogin(giteeUserInfo);
             if (r.getCode() == 0) {
-                MemberVo memberVo = r.getData(new TypeReference <MemberVo>() {
+                MemberTo memberVo = r.getData(new TypeReference <MemberTo>() {
                 });
+                session.setAttribute("loginUser",memberVo);
                 log.info("用户登录成功~~~ 用户信息:{}", memberVo.toString());
                 return "redirect:http://gulimall.com";
             }

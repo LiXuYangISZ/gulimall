@@ -1,4 +1,4 @@
-package com.atguigu.gulimall.authserver.vo;
+package com.atguigu.common.to;
 
 import lombok.Data;
 import lombok.ToString;
@@ -15,7 +15,7 @@ import java.util.Date;
  */
 @Data
 @ToString
-public class MemberVo implements Serializable {
+public class MemberTo implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	/**
