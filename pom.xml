@@ -21,6 +21,7 @@
         <module>renren-generator</module>
         <module>gulimall-gateway</module>
         <module>gulimall-search</module>
+        <module>gulimall-cart</module>
         <module>gulimall-third-party</module>
     </modules>
 

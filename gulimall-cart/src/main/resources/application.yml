@@ -1,0 +1,19 @@
+spring:
+  cloud:
+    nacos:
+      discovery:
+        server-addr: 192.168.174.128:8848
+  application:
+    name: gulimall-cart
+  thymeleaf:
+    cache: false
+server:
+  port: 13000
+
+
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 10000    # 10秒连接超时
+        readTimeout: 30000      # 30秒读取超时
