@@ -81,5 +81,5 @@ public class CartInterceptor implements HandlerInterceptor {
             response.addCookie(cookie);
         }
     }
-    //TODO 线程执行结束，threadlocal会自动清空，但如果用的是线程池，需要手动清空，否则就会造成内存泄露。甚至拿到别人的信息。。。
+    //TODO 线程执行结束，threadlocal以及内部的变量会自动释放清空。但如果用的是线程池，由于线程的复用，需要手动释放，否则就会造成内存泄露。甚至拿到别人的信息。。。
 }

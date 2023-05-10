@@ -642,7 +642,7 @@
 
                 <div class="box-btns clear">
                     <div class="box-btns-one">
-                        <input type="text" name="" id="" value="1"/>
+                        <input type="number" name="" id="skuNum" value="1"/>
                         <div class="box-btns-one1">
 
                             <div>
@@ -659,7 +659,7 @@
                         </div>
                     </div>
                     <div class="box-btns-two">
-                        <a href="http://cart.gulimall.com/addToCart">
+                        <a href="javascript:void (0);" id="addToCart" th:attr="skuId=${item.skuInfo.skuId}">
                             加入购物车
                         </a>
                     </div>
@@ -1604,6 +1604,12 @@
             return false;
         });
     });
+    $("#addToCart").click(function () {
+        var count = $("#skuNum").val();
+        var skuId = $(this).attr("skuId");
+        location.href = "http://cart.gulimall.com/addToCart?count="+count+"&skuId="+skuId;
+        return false;
+    })
 
 </script>
 

@@ -16,4 +16,12 @@ public class CartConstant {
      * 临时用户的user_key的过期时间【一个月】
      */
     public static final Integer TEMP_USER_COOKIE_TIMEOUT = 60*60*24*30;
+    /**
+     * 临时用户的购物车数据key前缀
+     */
+    public static final String TEMP_USER_CART_PREFIX = "cart:temp:";
+    /**
+     * 登录用户的购物车数据key前缀
+     */
+    public static final String LOGIN_USER_CART_PREFIX = "cart:login:";
 }

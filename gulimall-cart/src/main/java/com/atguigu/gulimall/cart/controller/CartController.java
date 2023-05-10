@@ -1,9 +1,16 @@
 package com.atguigu.gulimall.cart.controller;
 
 import com.atguigu.gulimall.cart.interceptor.CartInterceptor;
+import com.atguigu.gulimall.cart.service.CartService;
+import com.atguigu.gulimall.cart.vo.CartItem;
 import com.atguigu.gulimall.cart.vo.UserInfoTo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.concurrent.ExecutionException;
 
 /**
  * @author lxy
@@ -21,6 +28,10 @@ import org.springframework.web.bind.annotation.GetMapping;
  */
 @Controller
 public class CartController {
+
+    @Autowired
+    CartService cartService;
+
     @GetMapping("/cartList.html")
     public String cartListPage(){
         // 快速得到用户信息
@@ -34,7 +45,9 @@ public class CartController {
      * @return
      */
     @GetMapping("/addToCart")
-    public String addToCart(){
+    public String addToCart(@RequestParam("skuId") Long skuId, @RequestParam("count") Long count, Model model) throws ExecutionException, InterruptedException {
+        CartItem cartItem = cartService.addToCart(skuId,count);
+        model.addAttribute("cartItem",cartItem);
         return "success";
     }
 }
