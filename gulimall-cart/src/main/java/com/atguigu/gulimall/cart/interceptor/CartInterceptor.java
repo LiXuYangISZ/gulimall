@@ -16,7 +16,7 @@ import java.util.UUID;
 /**
  * @author lxy
  * @version 1.0
- * @Description 购物车拦截器，为Controller封装一个userInfo便于后序功能执行~
+ * @Description 购物车拦截器，为Controller封装一个userInfo【临时用户】便于后序功能执行~
  * TODO 思考：AOP可以代替这个拦截器么？他们和拦截器、过滤器区别是啥？
  * @date 2023/5/10 14:36
  */
@@ -63,7 +63,7 @@ public class CartInterceptor implements HandlerInterceptor {
     }
 
     /**
-     * 业务执行之后执行; 分配临时用户标识（user-key），让浏览器保存
+     * 业务执行之后执行; 把分配的临时用户标识（user-key），让浏览器保存
      * @param request
      * @param response
      * @param handler

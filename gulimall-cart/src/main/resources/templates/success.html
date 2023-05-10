@@ -25,7 +25,7 @@
         </ul>
         <ul class="hd_wrap_right">
             <li class="forel">
-                <a href="javascript:void(0);" th:if="${session.loginUser!=null}" class="link_login">欢迎：
+                <a href="javascript:void(0);" th:if="${session.loginUser!=null}" class="link_login" style="width: 120px;">欢迎：
                     [[${session.loginUser==null ? '': session.loginUser.nickname}]]</a>
                 <a href="http://auth.gulimall.com/login.html" class="link_login" th:if="${session.loginUser==null}">你好，请登录</a>
                 <a href="http://auth.gulimall.com/register.html" class="link_regist"
@@ -89,8 +89,8 @@
                         <div class="clr"></div>
                         <div class="bg_shop">
                             <a class="btn-tobback"
-                               th:href="'http://item.gmall.com:8084/'+${skuInfo?.id}+'.html'">查看商品详情</a>
-                            <a class="btn-addtocart" href="http://cart.gmall.com:8087/cartList"
+                               href="http://item.gulimall.com/48.html">查看商品详情</a>
+                            <a class="btn-addtocart" href="http://cart.gulimall.com/cartList.html"
                                id="GotoShoppingCart"><b></b>去购物车结算</a>
                         </div>
                     </div>
