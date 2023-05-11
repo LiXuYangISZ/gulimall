@@ -12,6 +12,7 @@ import com.atguigu.gulimall.cart.vo.CartItem;
 import com.atguigu.gulimall.cart.vo.SkuInfoTo;
 import com.atguigu.gulimall.cart.vo.UserInfoTo;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.BoundHashOperations;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -44,30 +45,39 @@ public class CartServiceImpl implements CartService {
     public CartItem addToCart(Long skuId, Long count) throws ExecutionException, InterruptedException {
         CartItem cartItem = new CartItem();
         BoundHashOperations <String, Object, Object> cartOps = getCartOps();
-        // 1、远程查询当前待添加商品的信息
-        CompletableFuture <Void> getSkuInfoFuture = CompletableFuture.runAsync(() -> {
-            R r = productFeignService.getSkuInfo(skuId);
-            if (r.getCode() == 0) {
-                SkuInfoTo skuInfo = r.getDataByName("skuInfo", new TypeReference <SkuInfoTo>() {
-                });
-                cartItem.setCheck(true);
-                cartItem.setCount(count);
-                cartItem.setDefaultImage(skuInfo.getSkuDefaultImg());
-                cartItem.setPrice(skuInfo.getPrice());
-                cartItem.setSkuId(skuId);
-                cartItem.setTitle(skuInfo.getSkuTitle());
-            }
-        }, executor);
-        // 2、远程查询当前商品的销售信息
-        CompletableFuture <Void> getSkuSaleValuesFuture = CompletableFuture.runAsync(() -> {
-            List <String> skuSaleAttrValue = productFeignService.getSkuSaleAttrValue(skuId);
-            cartItem.setAttrs(skuSaleAttrValue);
-        }, executor);
+        CartItem oldCartItem  = (CartItem) cartOps.get(skuId.toString());
+        // 如果购物车中还没有这个商品，则直接添加
+        if(oldCartItem==null){
+            // 1、远程查询当前待添加商品的信息
+            CompletableFuture <Void> getSkuInfoFuture = CompletableFuture.runAsync(() -> {
+                R r = productFeignService.getSkuInfo(skuId);
+                if (r.getCode() == 0) {
+                    SkuInfoTo skuInfo = r.getDataByName("skuInfo", new TypeReference <SkuInfoTo>() {
+                    });
+                    cartItem.setCheck(true);
+                    cartItem.setCount(count);
+                    cartItem.setDefaultImage(skuInfo.getSkuDefaultImg());
+                    cartItem.setPrice(skuInfo.getPrice());
+                    cartItem.setSkuId(skuId);
+                    cartItem.setTitle(skuInfo.getSkuTitle());
+                }
+            }, executor);
+            // 2、远程查询当前商品的销售信息
+            CompletableFuture <Void> getSkuSaleValuesFuture = CompletableFuture.runAsync(() -> {
+                List <String> skuSaleAttrValue = productFeignService.getSkuSaleAttrValue(skuId);
+                cartItem.setAttrs(skuSaleAttrValue);
+            }, executor);
 
-        CompletableFuture.allOf(getSkuInfoFuture,getSkuSaleValuesFuture).get();
-        // 3、保存至Redis
-        cartOps.put(skuId.toString(),JSON.toJSONString(cartItem));
-        return cartItem;
+            CompletableFuture.allOf(getSkuInfoFuture,getSkuSaleValuesFuture).get();
+            // 3、保存至Redis
+            cartOps.put(skuId.toString(),JSON.toJSONString(cartItem));
+            return cartItem;
+        }else {
+            // 如果购物车中已经有这个商品的数据了，则进行修改后覆盖
+            oldCartItem.setCount(oldCartItem.getCount()+ count);
+            cartOps.put(skuId.toString(),JSON.toJSONString(oldCartItem));
+            return oldCartItem;
+        }
     }
 
     /**
