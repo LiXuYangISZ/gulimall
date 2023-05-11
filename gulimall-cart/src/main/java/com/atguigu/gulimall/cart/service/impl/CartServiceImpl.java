@@ -43,11 +43,11 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItem addToCart(Long skuId, Long count) throws ExecutionException, InterruptedException {
-        CartItem cartItem = new CartItem();
         BoundHashOperations <String, Object, Object> cartOps = getCartOps();
-        CartItem oldCartItem  = (CartItem) cartOps.get(skuId.toString());
+        String oldCartItemStr = (String) cartOps.get(skuId.toString());
         // 如果购物车中还没有这个商品，则直接添加
-        if(oldCartItem==null){
+        if (StringUtils.isBlank(oldCartItemStr)) {
+            CartItem cartItem = new CartItem();
             // 1、远程查询当前待添加商品的信息
             CompletableFuture <Void> getSkuInfoFuture = CompletableFuture.runAsync(() -> {
                 R r = productFeignService.getSkuInfo(skuId);
@@ -68,15 +68,16 @@ public class CartServiceImpl implements CartService {
                 cartItem.setAttrs(skuSaleAttrValue);
             }, executor);
 
-            CompletableFuture.allOf(getSkuInfoFuture,getSkuSaleValuesFuture).get();
+            CompletableFuture.allOf(getSkuInfoFuture, getSkuSaleValuesFuture).get();
             // 3、保存至Redis
-            cartOps.put(skuId.toString(),JSON.toJSONString(cartItem));
+            cartOps.put(skuId.toString(), JSON.toJSONString(cartItem));
             return cartItem;
-        }else {
+        } else {
             // 如果购物车中已经有这个商品的数据了，则进行修改后覆盖
-            oldCartItem.setCount(oldCartItem.getCount()+ count);
-            cartOps.put(skuId.toString(),JSON.toJSONString(oldCartItem));
-            return oldCartItem;
+            CartItem cartItem = JSON.parseObject(oldCartItemStr, CartItem.class);
+            cartItem.setCount(cartItem.getCount() + count);
+            cartOps.put(skuId.toString(), JSON.toJSONString(cartItem));
+            return cartItem;
         }
     }
 
