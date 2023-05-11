@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.concurrent.ExecutionException;
 
@@ -41,13 +42,33 @@ public class CartController {
     }
 
     /**
-     * 添加商品到购物车
+     * 添加商品到购物车，并重定向到成功页面
+     * 如何重定向的路径后面携带参数呢？
+     * 1、RedirectAttributes redirect
+     *      redirect.addFlashAttribute();将数据放在session里面，可以在页面中取出，但是只能取一次。
+     *      redirect.addAttribute("skuId",skuId);将数据放在url后面
+     * 2、直接拼接的方式?skuId=48&count=100
      * @return
      */
     @GetMapping("/addToCart")
-    public String addToCart(@RequestParam("skuId") Long skuId, @RequestParam("count") Long count, Model model) throws ExecutionException, InterruptedException {
-        CartItem cartItem = cartService.addToCart(skuId,count);
-        model.addAttribute("cartItem",cartItem);
+    public String addToCart(@RequestParam("skuId") Long skuId, @RequestParam("count") Long count,RedirectAttributes redirectAttributes) throws ExecutionException, InterruptedException {
+        cartService.addToCart(skuId,count);
+        redirectAttributes.addAttribute("skuId",skuId);
+        // MY NOTES 由于转发过去地址不变,就会导致用户不停的刷新,会不断的向购物车中添加数据
+        //  思路: 改为重定向到页面(因为重定向会修改路径),然后把skuId传过去,每次刷新从新从Redis中获取数据
+        return "redirect:http://cart.gulimall.com/addToCartSuccess.html";
+    }
+
+    /**
+     * 查询添加成功的商品信息
+     * @param skuId
+     * @param model
+     * @return
+     */
+    @GetMapping("/addToCartSuccess.html")
+    public String addToCartSuccessPage(@RequestParam("skuId") Long skuId,Model model){
+        CartItem item = cartService.getCartItem(skuId);
+        model.addAttribute("cartItem",item);
         return "success";
     }
 }

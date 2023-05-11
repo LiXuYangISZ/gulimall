@@ -81,6 +81,14 @@ public class CartServiceImpl implements CartService {
         }
     }
 
+    @Override
+    public CartItem getCartItem(Long skuId) {
+        BoundHashOperations <String, Object, Object> cartOps = getCartOps();
+        String cartItemStr = (String) cartOps.get(skuId.toString());
+        CartItem cartItem = JSON.parseObject(cartItemStr, CartItem.class);
+        return cartItem;
+    }
+
     /**
      * 获取到我们要操作的购物车OPS
      * 使用BoundHashOperations相比传统的opsForHash，可以少传key.
