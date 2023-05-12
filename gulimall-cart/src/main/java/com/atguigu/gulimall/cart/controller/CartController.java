@@ -1,10 +1,8 @@
 package com.atguigu.gulimall.cart.controller;
 
-import com.atguigu.gulimall.cart.interceptor.CartInterceptor;
 import com.atguigu.gulimall.cart.service.CartService;
 import com.atguigu.gulimall.cart.vo.Cart;
 import com.atguigu.gulimall.cart.vo.CartItem;
-import com.atguigu.gulimall.cart.vo.UserInfoTo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -72,9 +70,29 @@ public class CartController {
         model.addAttribute("cartItem",item);
         return "success";
     }
+
+    /**
+     * 改变商品的选中状态
+     * @param skuId
+     * @param check
+     * @param redirectAttributes
+     * @return
+     */
     @GetMapping("/checkItem")
     public String checkItem(@RequestParam("skuId") Long skuId,@RequestParam("check") Integer check,RedirectAttributes redirectAttributes){
         cartService.checkItem(skuId,check);
+        return "redirect:http://cart.gulimall.com/cartList.html";
+    }
+
+    /**
+     * 修改商品的数量
+     * @param skuId
+     * @param count
+     * @return
+     */
+    @GetMapping("/countItem")
+    public String countItem(@RequestParam("skuId") Long skuId,@RequestParam("count") Long count){
+        cartService.changeItemCount(skuId,count);
         return "redirect:http://cart.gulimall.com/cartList.html";
     }
 }

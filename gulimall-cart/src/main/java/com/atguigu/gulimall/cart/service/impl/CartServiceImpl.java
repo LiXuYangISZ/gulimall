@@ -177,4 +177,16 @@ public class CartServiceImpl implements CartService {
         // 重新存进去
         cartOps.put(skuId.toString(),cartItemStr);
     }
+
+    @Override
+    public void changeItemCount(Long skuId, Long count) {
+        BoundHashOperations <String, Object, Object> cartOps = getCartOps();
+        // 获取Redis中的cartItem
+        CartItem cartItem = getCartItem(skuId);
+        // 改变勾选状态
+        cartItem.setCount(count);
+        String cartItemStr = JSON.toJSONString(cartItem);
+        // 重新存进去
+        cartOps.put(skuId.toString(),cartItemStr);
+    }
 }
