@@ -189,4 +189,10 @@ public class CartServiceImpl implements CartService {
         // 重新存进去
         cartOps.put(skuId.toString(),cartItemStr);
     }
+
+    @Override
+    public void deleteItem(Long skuId) {
+        BoundHashOperations <String, Object, Object> cartOps = getCartOps();
+        cartOps.delete(skuId.toString());
+    }
 }

@@ -54,4 +54,6 @@ public interface CartService {
      * @param count
      */
     void changeItemCount(Long skuId, Long count);
+
+    void deleteItem(Long skuId);
 }
