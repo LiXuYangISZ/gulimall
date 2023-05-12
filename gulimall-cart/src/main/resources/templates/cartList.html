@@ -58,10 +58,10 @@
                 <input type="button" value="搜索" class="one_right_btn">
             </div>
         </div>
-        <div class="one_search_load" th:if="${userId}==null">
+        <div class="one_search_load" th:if="${session.loginUser}==null">
             <img src="/static/cart/img/shop_07.jpg" class="one_load_wraing">
             <span>您还没有登录！登录后购物车的商品将保存到您账号中</span>
-            <a href="#"><input type="button" onclick="login()" value="立即登录" class="one_load_btn"></a>
+            <a href="http://auth.gulimall.com/login.html"><input type="button" value="立即登录" class="one_load_btn"></a>
         </div>
     </div>
 </div>
@@ -84,95 +84,68 @@
                 <li>操作</li>
             </ul>
         </div>
-
+        <a href="http://gulimall.com">
+        <div th:if="${cart.cartItems==null}" style="text-align:center;width: 970px;font-size: large;color: skyblue; font-weight: bolder; line-height: 50px;">
+            购物车还没有商品~ 开始购买
+        </div></a>
         <div class="One_ShopCon">
-            <ul>
-                <li th:each="cartInfo:${cartList}">
-                    <div></div>
 
+            <ul th:if="${cart.cartItems!=null}">
+                <li th:each="cartItem : ${cart.cartItems}">
+                    <div></div>
                     <div>
                         <ol>
-                            <li><input type="checkbox" class="check" th:value="${cartInfo.skuId}"
-                                       onchange="checkSku(this)"
-                                       th:checked="(${cartInfo.isChecked}==1)?'true':'false'"/></li>
+                            <li><input type="checkbox" class="check" th:checked="${cartItem.check}"></li>
                             <li>
-                                <dt><img th:src="${cartInfo.imgUrl}" src="/static/cart/img/shop1.jpg" alt=""></dt>
-                                <dd th:onclick="'toItem('+${cartInfo.skuId}+')'">
-                                    <p>
-                                        <span th:text="${cartInfo.skuName}">TCL 55A950C 55英寸32核</span>
+                                <dt><img th:src="${cartItem.defaultImage}" th:alt="${cartItem.title}"></dt>
+                                <dd style="width: 300px; ">
+                                    <p style="padding-top: 13px;">
+
+                                        <span th:text="${cartItem.title}">TCL 55A950C 55英寸32核</span>
+                                        <br>
+                                    <div style="padding-top: 5px; color: #9c9c9c;">
+                                        <span th:each="attr : ${cartItem.attrs}"
+                                              th:text="${attr}" style="padding-right: 12px;">尺码: 55时 超薄曲面 人工智能</span>
+                                    </div>
                                     </p>
+
                                 </dd>
                             </li>
                             <li>
-                                <p class="dj" th:text="'￥'+${cartInfo.skuPrice}">4599.00</p>
+                                <p class="dj" th:text="'￥'+${#numbers.formatDecimal(cartItem.price,1,2)}">￥4599.00</p>
                             </li>
                             <li>
                                 <p>
                                     <span>-</span>
-                                    <span th:text="${cartInfo.skuNum}">5</span>
+                                    <span th:text="${cartItem.count}">5</span>
                                     <span>+</span>
                                 </p>
+
                             </li>
-                            <li style="font-weight:bold">
-                                <p class="zj" th:text="'￥'+${cartInfo.totalPrice}">￥22995.00</p>
-                            </li>
+                            <li style="font-weight:bold"><p class="zj"
+                                                            th:text="'￥'+${#numbers.formatDecimal(cartItem.totalPrice,1,2)}">
+                                ￥22995.00</p></li>
                             <li>
                                 <p>删除</p>
+
                             </li>
                         </ol>
                     </div>
                 </li>
-                <!--<li>
-            <div>
-            </div>
-            <div>
-                <ol>
-                    <li><input type="checkbox"  class="check"></li>
-                    <li>
-                        <dt><img src="img\shop1.jpg" alt=""></dt>
-                        <dd>
-                            <p>
-
-                                <span>TCL 55A950C 55英寸32核</span>
-                                <span>尺码: 55时 超薄曲面 人工智能</span>
-                            </p>
-                            <p>人工智能 HDR曲面超薄4K电视金属机</p>
-
-                        </dd>
-                    </li>
-                    <li>
-                        <p class="dj">￥4599.00</p>
-
-                    </li>
-                    <li>
-                        <p>
-                            <span>-</span>
-                            <span>5</span>
-                            <span>+</span>
-                        </p>
-
-                    </li>
-                    <li style="font-weight:bold"><p class="zj">￥22995.00</p></li>
-                    <li>
-                        <p>删除</p>
-
-                    </li>
-                </ol>
-            </div>
-        </li>-->
-
             </ul>
+
+
         </div>
         <div class="One_ShopFootBuy fix1">
             <div>
-                <ul>
-                    <li><input type="checkbox" class="allCheck"><span>全选</span></li>
-                    <li>删除选中的商品</li>
-                    <li>移到我的关注</li>
-                    <li>清除下柜商品</li>
+                <ul style="line-height: 50px;">
+                    <li style="padding-left:15px;"><input type="checkbox" class="allCheck" style="width: 20px;"><span>全选</span></li>
+                    <li style="padding-left: 15px;">删除选中的商品</li>
+                    <li style="padding-left: 15px;">移到我的关注</li>
+                    <li style="padding-left: 15px;">清除下柜商品</li>
                 </ul>
             </div>
-            <div>
+            <div style="width: 115px;">
                 <font style="color:#e64346;font-weight:bold;" class="sumNum"> </font>&nbsp;
 
                 <ul>
@@ -182,7 +155,10 @@
             </div>
             <div>
                 <ol>
-                    <li>总价:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt">￥0.00</span></li>
+                    <li style="line-height: 50px;">总价:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt">￥[[${#numbers.formatDecimal(cart.totalAmount,1,2)}]]</span>
+                    </li>
+                    <!--<li>优惠:<span style="color:#e64346;font-weight:bold;font-size:16px;" class="fnt">￥[[${#numbers.formatDecimal(cart.reduce,1,2)}]]</span>-->
+                    <!--</li>-->
 
                 </ol>
             </div>

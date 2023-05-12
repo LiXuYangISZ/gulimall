@@ -27,7 +27,7 @@
             <li class="forel">
                 <a href="javascript:void(0);" th:if="${session.loginUser!=null}" class="link_login" style="width: 120px;">欢迎：
                     [[${session.loginUser==null ? '': session.loginUser.nickname}]]</a>
-                <a href="http://auth.gulimall.com/login.html" class="link_login" th:if="${session.loginUser==null}">你好，请登录</a>
+                <a href="http://auth.gulimall.com/login.html" class="link_login" th:if="${session.loginUser==null}" style="width: 85px;">你好，请登录</a>
                 <a href="http://auth.gulimall.com/register.html" class="link_regist"
                    th:if="${session.loginUser == null}">免费注册</a>
             </li>

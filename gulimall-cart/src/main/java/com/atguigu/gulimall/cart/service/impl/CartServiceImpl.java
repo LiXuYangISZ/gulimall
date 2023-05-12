@@ -8,6 +8,7 @@ import com.atguigu.gulimall.cart.config.MyThreadPoolConfig;
 import com.atguigu.gulimall.cart.feign.ProductFeignService;
 import com.atguigu.gulimall.cart.interceptor.CartInterceptor;
 import com.atguigu.gulimall.cart.service.CartService;
+import com.atguigu.gulimall.cart.vo.Cart;
 import com.atguigu.gulimall.cart.vo.CartItem;
 import com.atguigu.gulimall.cart.vo.SkuInfoTo;
 import com.atguigu.gulimall.cart.vo.UserInfoTo;
@@ -22,6 +23,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 /**
  * @author lxy
@@ -89,6 +91,36 @@ public class CartServiceImpl implements CartService {
         return cartItem;
     }
 
+    @Override
+    public Cart getCart() throws ExecutionException, InterruptedException {
+        Cart cart = new Cart();
+        UserInfoTo userInfo = CartInterceptor.threadLocal.get();
+        if (userInfo.getUserId() != null) {
+            // 一、登录
+            String tempCartKey = CartConstant.TEMP_USER_CART_PREFIX + userInfo.getUserKey();
+            String loginCartKey = CartConstant.LOGIN_USER_CART_PREFIX + userInfo.getUserId();
+            List <CartItem> tempCartItems = getCartItems(tempCartKey);
+            if (tempCartItems != null && tempCartItems.size() > 0) {
+                // 1.1 如果临时购物车有数据，则把临时购物车里面的商品添加至登录购物车里【合并购物车】
+                for (CartItem tempCartItem : tempCartItems) {
+                    addToCart(tempCartItem.getSkuId(), tempCartItem.getCount());
+                }
+                // 1.2 清空临时购物车
+                clearCart(tempCartKey);
+            }
+            // 1.3 获取登录购物车的数据
+            List <CartItem> loginCartItems = getCartItems(loginCartKey);
+            cart.setCartItems(loginCartItems);
+        } else {
+            // 二、未登录，获取临时购物车的所有购物项
+            List <CartItem> cartItems = getCartItems(CartConstant.TEMP_USER_CART_PREFIX + userInfo.getUserKey());
+            if (cartItems != null) {
+                cart.setCartItems(cartItems);
+            }
+        }
+        return cart;
+    }
+
     /**
      * 获取到我们要操作的购物车OPS
      * 使用BoundHashOperations相比传统的opsForHash，可以少传key.
@@ -106,5 +138,31 @@ public class CartServiceImpl implements CartService {
             cartKey = CartConstant.TEMP_USER_CART_PREFIX + userInfo.getUserKey();
         }
         return redisTemplate.boundHashOps(cartKey);
+    }
+
+    /**
+     * 获取购物车里面的所有购物项
+     *
+     * @param cartKey
+     * @return
+     */
+    private List <CartItem> getCartItems(String cartKey) {
+        BoundHashOperations <String, Object, Object> cartOps = redisTemplate.boundHashOps(cartKey);
+        List <Object> values = cartOps.values();
+        if (values != null && values.size() > 0) {
+            List <CartItem> cartItems = values.stream().map((obj) -> JSON.parseObject(obj.toString(), CartItem.class)).collect(Collectors.toList());
+            return cartItems;
+        }
+        return null;
+    }
+
+    /**
+     * 清空购物车数据
+     *
+     * @param cartKey
+     */
+    @Override
+    public void clearCart(String cartKey) {
+        redisTemplate.delete(cartKey);
     }
 }
