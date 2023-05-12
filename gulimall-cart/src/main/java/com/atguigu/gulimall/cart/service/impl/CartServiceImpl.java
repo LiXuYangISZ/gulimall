@@ -165,4 +165,16 @@ public class CartServiceImpl implements CartService {
     public void clearCart(String cartKey) {
         redisTemplate.delete(cartKey);
     }
+
+    @Override
+    public void checkItem(Long skuId, Integer check) {
+        BoundHashOperations <String, Object, Object> cartOps = getCartOps();
+        // 获取Redis中的cartItem
+        CartItem cartItem = getCartItem(skuId);
+        // 改变勾选状态
+        cartItem.setCheck(check==1);
+        String cartItemStr = JSON.toJSONString(cartItem);
+        // 重新存进去
+        cartOps.put(skuId.toString(),cartItemStr);
+    }
 }

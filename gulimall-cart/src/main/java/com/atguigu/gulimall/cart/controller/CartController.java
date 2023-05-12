@@ -72,4 +72,9 @@ public class CartController {
         model.addAttribute("cartItem",item);
         return "success";
     }
+    @GetMapping("/checkItem")
+    public String checkItem(@RequestParam("skuId") Long skuId,@RequestParam("check") Integer check,RedirectAttributes redirectAttributes){
+        cartService.checkItem(skuId,check);
+        return "redirect:http://cart.gulimall.com/cartList.html";
+    }
 }

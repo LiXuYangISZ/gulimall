@@ -15,9 +15,10 @@ spring:
 
 server:
   port: 20000
-  servlet: #session 过期时间
+  servlet: #session 过期时间 30天
     session:
-      timeout: 30m
+      timeout: 43200
+
 
 ## TODO 这里该如何配置服务调用时间呢？？？
 #ribbon:
