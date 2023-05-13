@@ -36,7 +36,7 @@ public class RabbitController {
             }else {
                 OrderEntity entity = new OrderEntity();
                 entity.setOrderSn(UUID.randomUUID().toString());
-                rabbitTemplate.convertAndSend("hello-java-exchange", "hello.java", entity,new CorrelationData(UUID.randomUUID().toString()));
+                rabbitTemplate.convertAndSend("hello-java-exchange", "hello2222.java", entity,new CorrelationData(UUID.randomUUID().toString()));
             }
         }
 

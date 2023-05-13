@@ -14,6 +14,10 @@
     host: 192.168.174.128
     port: 5672
     virtual-host: /
+    publisher-confirms: true # 开启发送端确认
+    publisher-returns: true  # 开启发送端抵达队列的确认
+    template:
+      mandatory: true # 只要抵达队列，以异步发送优先回调我们这个returnConfirm
 
  mybatis-plus:
   mapper-locations: classpath:/mapper/**/*.xml #配置xml位置
