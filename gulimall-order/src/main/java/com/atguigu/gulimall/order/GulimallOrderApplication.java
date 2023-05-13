@@ -17,6 +17,9 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
  *
  * 3、给配置文件中配置 spring.rabbitmq 信息
  * 4、@EnableRabbit: @EnableXxxxx；开启功能
+ * 5、监听消息：使用@RabbitListener；必须有@EnableRabbit
+ *    @RabbitListener: 类+方法上（监听哪些队列即可）
+ *    @RabbitHandler：标在方法上（重载区分不同的消息）
  *
  */
 @EnableRabbit
