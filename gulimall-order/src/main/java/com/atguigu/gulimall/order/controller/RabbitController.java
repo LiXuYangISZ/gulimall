@@ -25,19 +25,19 @@ public class RabbitController {
      * @return
      */
     @GetMapping("/sendMq")
-    public String sendMq(@RequestParam(value = "num",defaultValue = "10") Integer num){
+    public String sendMq(@RequestParam(value = "num",defaultValue = "5") Integer num){
         for (int i=0;i<num;i++){
-            if(i%2 == 0){
+        //     if(i%2 == 0){
                 OrderReturnReasonEntity reasonEntity = new OrderReturnReasonEntity();
                 reasonEntity.setId(1L);
                 reasonEntity.setCreateTime(new Date());
                 reasonEntity.setName("哈哈-"+i);
                 rabbitTemplate.convertAndSend("hello-java-exchange", "hello.java", reasonEntity,new CorrelationData(UUID.randomUUID().toString()));
-            }else {
-                OrderEntity entity = new OrderEntity();
-                entity.setOrderSn(UUID.randomUUID().toString());
-                rabbitTemplate.convertAndSend("hello-java-exchange", "hello2222.java", entity,new CorrelationData(UUID.randomUUID().toString()));
-            }
+        //     }else {
+        //         OrderEntity entity = new OrderEntity();
+        //         entity.setOrderSn(UUID.randomUUID().toString());
+        //         rabbitTemplate.convertAndSend("hello-java-exchange", "hello2222.java", entity,new CorrelationData(UUID.randomUUID().toString()));
+        //     }
         }
 
         return "ok";
