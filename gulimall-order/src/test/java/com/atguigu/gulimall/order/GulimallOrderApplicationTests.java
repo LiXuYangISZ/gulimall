@@ -1,5 +1,7 @@
 package com.atguigu.gulimall.order;
 
+import com.atguigu.gulimall.order.entity.OrderEntity;
+import com.atguigu.gulimall.order.entity.OrderReturnReasonEntity;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -7,11 +9,14 @@ import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.DirectExchange;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.Date;
+import java.util.UUID;
 
 @Slf4j
 @RunWith(SpringRunner.class)
@@ -83,4 +88,23 @@ public class GulimallOrderApplicationTests {
         log.info("Binding[{}]创建成功", "hello-java-binding");
     }
 
+
+    /**
+     * 发送消息
+     * MY NOTES 如果发送的消息是个对象，我们会使用序列化机制，将对象写出去。对象必须实现Serializable
+     */
+    @Test
+    public void sendMessageTest() {
+
+        //1、 发送消息
+        String msg = "Hello World!";
+
+        //2、发送的对象类型的消息。可以配置JSON序列器转成一个json
+        OrderReturnReasonEntity reasonEntity = new OrderReturnReasonEntity();
+        reasonEntity.setId(1L);
+        reasonEntity.setCreateTime(new Date());
+        reasonEntity.setName("哈哈-");
+        rabbitTemplate.convertAndSend("hello-java-exchange", "hello.java", reasonEntity, new CorrelationData(UUID.randomUUID().toString()));
+        log.info("消息发送完成{}");
+    }
 }
