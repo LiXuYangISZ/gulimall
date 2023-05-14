@@ -57,8 +57,12 @@
 					<b><span ></span></b>
 				</div>
 				<div class="si_bom1 tab" style="display:none;" >
+					<!--TODO 这个error.msg可以优化-->
 					<div class="error" th:style="${errors!=null?(#maps.containsKey(errors,'msg')? 'display:block;padding-right: 40px;':'display:none;'):''}" >
 						<span th:text="${errors!=null?(#maps.containsKey(errors, 'msg')?errors.msg:''):''}"></span>
+					</div>
+					<div class="error" th:if="${session.errorMsg!=null}" style="display:block;padding-right: 40px" >
+						<span th:text="${session.errorMsg}"></span>
 					</div>
 					<form action="/login" method="post">
 					<ul>

@@ -43,6 +43,7 @@
 - [ ] 1. 入参全部改为DTO，视图数据全部改为VO。
 - [ ] 2. 请求遵循RESTFUL规范
 - [ ] <font color=green>3. 自定义判空工具类：包括 isBlank+ "0" +"null" + 其他字符 </font>
+- [ ] 使用ThreadLocal，使用完要进行释放~以免内存泄漏
 
 ```java
 public static boolean isAllNotEmpty(String... args) {
