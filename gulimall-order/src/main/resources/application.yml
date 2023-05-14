@@ -23,6 +23,11 @@
         acknowledge-mode: manual # 手动ack消息
   thymeleaf:
     cache: false # 配置thymeleaf缓存
+  session:
+    store-type: redis
+  redis:
+    host: 192.168.174.128
+    port: 6379
 
 
  mybatis-plus:
@@ -33,4 +38,3 @@
 
  server:
    port: 9000
-
