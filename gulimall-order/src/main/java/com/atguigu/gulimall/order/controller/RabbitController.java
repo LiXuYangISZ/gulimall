@@ -12,6 +12,9 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.Date;
 import java.util.UUID;
 
+/**
+ * 测试RabbitMQ发送消息的Controller
+ */
 @RestController
 public class RabbitController {
 
