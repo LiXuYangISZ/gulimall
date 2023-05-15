@@ -195,4 +195,21 @@ public class CartServiceImpl implements CartService {
         BoundHashOperations <String, Object, Object> cartOps = getCartOps();
         cartOps.delete(skuId.toString());
     }
+
+    @Override
+    public List <CartItem> getUserCartItems() {
+        // 这里就不用判断用户是否登录了，因为既然能够到达订单模块，那么一定就是登录的~
+        UserInfoTo userInfo = CartInterceptor.threadLocal.get();
+        String loginKey = CartConstant.LOGIN_USER_CART_PREFIX+userInfo.getUserId();
+        List <CartItem> cartItems = getCartItems(loginKey);
+        return cartItems;
+        // TODO 其实咱们采用的这种方法，理论上是可以的。但是循环中更新效率太低了。（此处咱们默认价格一直不变）
+        //  ①可以用户每次点击购物车的时候，发送Ajax请求，请求出商品当前的价格。同时之前的价格也要保留，便于用户进行对比
+        //  ②可以当商家修改商品价格的时候，修改所有有该商品的用户的购物车信息~
+        // return cartItems.stream().map(cartItem -> {
+        //     // 设置价格为当前最新的价格，而不是当时加入购物车时候的价格~
+        //     cartItem.setPrice(productFeignService.getPrice(cartItem.getSkuId()));
+        //     return cartItem;
+        // }).collect(Collectors.toList());
+    }
 }

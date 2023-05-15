@@ -8,9 +8,11 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -107,4 +109,14 @@ public class CartController {
         cartService.deleteItem(skuId);
         return "redirect:http://cart.gulimall.com/cartList.html";
     }
+
+    /**
+     * 获取购物车中被选中的商品
+     * @return
+     */
+    @GetMapping("/currentUserCartItems")
+    public List <CartItem> currentUserCartItems(){
+        return cartService.getUserCartItems();
+    }
+
 }
