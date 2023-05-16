@@ -3,6 +3,7 @@ package com.atguigu.gulimall.order.feign;
 import com.atguigu.gulimall.order.vo.CartItemVo;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ public interface CartFeignService {
      * 获取购物车中被选中的商品
      * @return
      */
-    @GetMapping("/currentUserCartItems")
+    @GetMapping("/cart/currentUserCartItems")
+    @ResponseBody
     List <CartItemVo> currentUserCartItems();
 }

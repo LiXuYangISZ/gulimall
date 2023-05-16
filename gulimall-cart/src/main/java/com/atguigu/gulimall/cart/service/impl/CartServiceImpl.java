@@ -200,6 +200,10 @@ public class CartServiceImpl implements CartService {
     public List <CartItem> getUserCartItems() {
         // 这里就不用判断用户是否登录了，因为既然能够到达订单模块，那么一定就是登录的~
         UserInfoTo userInfo = CartInterceptor.threadLocal.get();
+        if(userInfo.getUserId()==null){
+            // 未登录~ 已经不合法了
+            return null;
+        }
         String loginKey = CartConstant.LOGIN_USER_CART_PREFIX+userInfo.getUserId();
         List <CartItem> cartItems = getCartItems(loginKey);
         return cartItems;

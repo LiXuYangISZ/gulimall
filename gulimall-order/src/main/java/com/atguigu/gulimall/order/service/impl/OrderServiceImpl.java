@@ -45,6 +45,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return new PageUtils(page);
     }
 
+    /**
+     * 订单确认
+     *
+     * MY NOTES
+     *  一、Feign在远程调用之前要构造请求，调用很多的拦截器。 RequestInterceptor interceptor : requestInterceptors。
+     *     所以我们可以把Cookie放至拦截器中，让其构造时加上~
+     *  二、理论上第一个不给用户id也可以,无非也和第二个一样呗. 从threadLocal中获取~ 老师向我们展示了两种思路
+     *
+     * @return
+     */
     @Override
     public OrderConfirmVo confirmOrder() {
         MemberTo member = LoginInterceptor.threadLocal.get();
