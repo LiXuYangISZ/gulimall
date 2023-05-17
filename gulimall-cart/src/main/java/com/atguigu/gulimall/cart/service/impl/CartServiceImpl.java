@@ -205,7 +205,7 @@ public class CartServiceImpl implements CartService {
             return null;
         }
         String loginKey = CartConstant.LOGIN_USER_CART_PREFIX+userInfo.getUserId();
-        List <CartItem> cartItems = getCartItems(loginKey);
+        List <CartItem> cartItems = getCheckedCartItems(loginKey);
         return cartItems;
         // TODO 其实咱们采用的这种方法，理论上是可以的。但是循环中更新效率太低了。（此处咱们默认价格一直不变）
         //  ①可以用户每次点击购物车的时候，发送Ajax请求，请求出商品当前的价格。同时之前的价格也要保留，便于用户进行对比
@@ -215,5 +215,20 @@ public class CartServiceImpl implements CartService {
         //     cartItem.setPrice(productFeignService.getPrice(cartItem.getSkuId()));
         //     return cartItem;
         // }).collect(Collectors.toList());
+    }
+
+    /**
+     * 获取用户勾选的所有商品【确认商品】
+     * @param cartKey
+     * @return
+     */
+    private List <CartItem> getCheckedCartItems(String cartKey) {
+        BoundHashOperations <String, Object, Object> cartOps = redisTemplate.boundHashOps(cartKey);
+        List <Object> values = cartOps.values();
+        if (values != null && values.size() > 0) {
+            List <CartItem> cartItems = values.stream().map((obj) -> JSON.parseObject(obj.toString(), CartItem.class)).filter(CartItem::getCheck).collect(Collectors.toList());
+            return cartItems;
+        }
+        return null;
     }
 }

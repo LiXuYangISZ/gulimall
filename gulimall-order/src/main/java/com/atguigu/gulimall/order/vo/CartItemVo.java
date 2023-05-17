@@ -51,6 +51,16 @@ public class CartItemVo implements Serializable {
     private List <String> attrs;
 
     /**
+     * TODO 查询是否有库存
+     */
+    private boolean hasStock = true;
+
+    /**
+     * TODO 查询商品重量【咱们这个项目实在SPU维度，其实实际上应该是SKU维度。比如15.6寸笔记本和14寸笔记本重量是不一样的哦】
+     */
+    private BigDecimal weight;
+
+    /**
      * 获取商品总价
      * @return
      */

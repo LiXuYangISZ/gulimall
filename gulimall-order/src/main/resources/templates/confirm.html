@@ -598,25 +598,23 @@
 			</div>
 
 			<!--地址-->
-			<div class="top-3">
-				<p>家里</p><span>齐天大圣  北京市  昌平区城区晨曦小区-16号楼 吉利大学  150****2245</span>
+			<div class="top-3" th:each="address : ${orderConfirmData.address}">
+				<p>[[${address.name}]]</p><span>[[${address.province}]]  [[${address.city}]][[${address.region}]][[${address.detailAddress}]]  [[${address.phone}]]</span>
 			</div>
 			<p class="p2">更多地址︾</p>
 			<div class="hh1"/></div>
 		<!--********************************************************************************************-->
 		<!--谷粒学院自提-->
-		<div class="top-4">
-			<p>谷粒学院自提</p>
-			<p>省运费·无续重·随时取</p>
-			<p class="xiang">详情</p>
-		</div>
+		<!--<div class="top-4">-->
+		<!--	<p>谷粒学院自提</p>-->
+		<!--	<p>省运费·无续重·随时取</p>-->
+		<!--	<p class="xiang">详情</p>-->
+		<!--</div>-->
 
 		<!--地址-->
-		<div class="top-5">
-			<p>北京昌平区</p><span>北京市  昌平区城区晨曦小区-16号楼 吉利大学  齐天大圣 150****2245</span><img src="/static/order/confirm/img/09.png" /><span>距收货人0米</span>
-			<p class="p3">距离最近</p><span class="xiu">修改自提点</span>
-		</div>
-		<div class="hh1" /></div>
+		<!--<div class="top-5">-->
+		<!--</div>-->
+		<!--<div class="hh1" /></div>-->
 
 		<!--支付方式-->
 		<h4 class="h4">支付方式</h4>
@@ -632,11 +630,11 @@
 			<div class="to_left">
 				<h5><span class="peisong">配送方式</span><span class="dui"><img src="/static/order/confirm/img/i_03.png"/> 对应商品</span></h5>
 				<div class="box">
-					谷粒学院快递
+					顺丰速运
 				</div>
 				<p class="biao">
 					<span class="til">标 准 达 ：</span>
-					<span class="con">预计 12月16日[今天] 15:00-19:00 送达</span>
+					<span class="con">预计 5月21日[今天] 15:00-19:00 送达</span>
 					<a href="/static/order/confirm/#">修改</a>
 				</p>
 				<div class="updata-1">
@@ -663,34 +661,35 @@
 			</div>
 			<div class="to_right">
 				<h5>商家：谷粒学院自营</h5>
-				<div><button>换购</button><span>已购满20.00元，再加49.90元，可返回购物车领取赠品</span></div>
+				<div><button>换购</button><span>已购满指定价格，再加666元，可返回购物车领取赠品</span></div>
 				<!--图片-->
-				<div class="yun1">
-					<img src="/static/order/confirm/img/im_03.png" class="yun"/>
-					<div class="mi">
-						<p>小米（MI）小米手环2 智能运动 心率检测 来 <span style="color: red;"> ￥ 149.00</span> <span> x1 </span> <span>有货</span></p>
-						<p>电提醒 久坐提醒 LED显示器 时间显示 防水记 <span>0.095kg</span></p>
-						<p class="tui-1"><img src="/static/order/confirm/img/i_07.png" />支持7天无理由退货</p>
+				<div class="yun1" th:each="item : ${orderConfirmData.items}">
+					<img th:src="${item.defaultImage}" class="yun"/>
+					<div class="mi" style="padding: 27px 0;">
+						<p style="overflow:hidden;"><span>[[${item.title}]]</span> </p>
+						<p><span style="color: red;" th:text="'￥'+${#numbers.formatDecimal(item.price,1,2)}"> ￥ 149.00</span> <span > x[[${item.count}]] </span> <span th:text="${item.hasStock ==true?'有货':'无货'}">有货</span></p>
+						<!--<p> <span>0.095kg</span></p>-->
+						<!--<p class="tui-1"><img src="/static/order/confirm/img/i_07.png" />支持7天无理由退货</p>-->
 					</div>
 				</div>
-
-				<div class="hh1"></div>
-				<p>退换无忧 <span class="money">￥ 0.00</span></p>
+				<!--<div class="hh1" style="padding-top: 20px;"></div>-->
+				<!--<p>退换无忧 <span class="money" th:text="'￥'+${#numbers.formatDecimal(orderConfirmData.total,1,2)}">￥ 0.00</span></p>-->
 			</div>
 		</div>
 		<div class="bto">
 			<div class="hh2"></div>
-			<h4 class="float">发票信息</h4>
-			<div class="note float"><img src="/static/order/confirm/img/i_11.png" /> <span>开企业抬头发票须填写纳税人识别号，以免影响报销</span></div>
-			<ul style="clear: both;">
-				<li>电子普通发票 <img src="/static/order/confirm/img/i_14.png" /></li>
-				<li>个人</li>
-				<li>商品明细</li>
-				<li>
-					<a href="/static/order/confirm/">修改</a>
-				</li>
-			</ul>
-			<div class="hh3"></div>
+			<!--TODO 发票信息，将来可以搞张发票表实现~-->
+			<!--<h4 class="float">发票信息</h4>-->
+			<!--<div class="note float"><img src="/static/order/confirm/img/i_11.png" /> <span>开企业抬头发票须填写纳税人识别号，以免影响报销</span></div>-->
+			<!--<ul style="clear: both;">-->
+			<!--	<li>电子普通发票 <img src="/static/order/confirm/img/i_14.png" /></li>-->
+			<!--	<li>个人</li>-->
+			<!--	<li>商品明细</li>-->
+			<!--	<li>-->
+			<!--		<a href="/static/order/confirm/">修改</a>-->
+			<!--	</li>-->
+			<!--</ul>-->
+			<!--<div class="hh3"></div>-->
 			<h4 class="clear">使用优惠/礼品卡/抵用 ^</h4>
 			<ul>
 				<li class="red">优惠卡</li>
@@ -707,9 +706,9 @@
 		<div class="xia">
 			<div class="qian">
 				<p class="qian_y">
-					<span>1</span>
+					<span th:text="${orderConfirmData.count}">1</span>
 					<span>件商品，总商品金额：</span>
-					<span class="rmb">￥28.90</span>
+					<span class="rmb" th:text="'￥'+${#numbers.formatDecimal(orderConfirmData.total,1,2)}">￥28.90</span>
 				</p>
 				<p class="qian_y">
 					<span>返现：</span>
@@ -731,7 +730,7 @@
 			</div>
 
 			<div class="yfze">
-				<p class="yfze_a"><span class="z">应付总额：</span><span class="hq">￥28.90</span></p>
+				<p class="yfze_a"><span class="z">应付总额：</span><span class="hq" th:text="'￥'+${#numbers.formatDecimal(orderConfirmData.payPrice,1,2)}">￥28.90</span></p>
 				<p class="yfze_b">寄送至： 北京 朝阳区 三环到四环之间 朝阳北路复兴国际大厦23层麦田房产 IT-中心研发二部 收货人：赵存权 188****5052</p>
 			</div>
 			<button class="tijiao">提交订单</button>

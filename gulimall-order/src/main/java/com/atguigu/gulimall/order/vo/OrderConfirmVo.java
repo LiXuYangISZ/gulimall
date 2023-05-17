@@ -30,6 +30,20 @@ public class OrderConfirmVo {
      */
     Integer integration;
 
+
+    /**
+     * 获得商品件数
+     * @return
+     */
+    public Long getCount(){
+        if(items.size()==0){
+            return 0L;
+        }else {
+            return items.stream().map(CartItemVo::getCount).reduce(Long::sum).get();
+        }
+    }
+
+
     /**
      * 获取订单总额
      * @return
