@@ -1,9 +1,20 @@
 package com.atguigu.gulimall.ware.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
+import com.atguigu.common.utils.R;
+import com.atguigu.common.utils.RandomUtil;
+import com.atguigu.gulimall.ware.feign.MemberFeignService;
+import com.atguigu.gulimall.ware.vo.MemberReceiveAddressVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.RandomUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 import java.util.Map;
+import java.util.concurrent.ThreadLocalRandom;
+
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,24 +27,51 @@ import com.atguigu.gulimall.ware.service.WareInfoService;
 
 
 @Service("wareInfoService")
-public class WareInfoServiceImpl extends ServiceImpl<WareInfoDao, WareInfoEntity> implements WareInfoService {
+public class WareInfoServiceImpl extends ServiceImpl <WareInfoDao, WareInfoEntity> implements WareInfoService {
+
+    @Autowired
+    MemberFeignService memberFeignService;
 
     @Override
-    public PageUtils queryPage(Map<String, Object> params) {
+    public PageUtils queryPage(Map <String, Object> params) {
         LambdaQueryWrapper <WareInfoEntity> queryWrapper = new LambdaQueryWrapper <>();
         String key = (String) params.get("key");
-        if(StringUtils.isNotBlank(key)){
-            queryWrapper.eq(WareInfoEntity::getId,key).or()
-                    .like(WareInfoEntity::getName,key).or()
-                    .like(WareInfoEntity::getAddress,key).or()
-                    .eq(WareInfoEntity::getAreacode,key);
+        if (StringUtils.isNotBlank(key)) {
+            queryWrapper.eq(WareInfoEntity::getId, key).or()
+                    .like(WareInfoEntity::getName, key).or()
+                    .like(WareInfoEntity::getAddress, key).or()
+                    .eq(WareInfoEntity::getAreacode, key);
         }
-        IPage<WareInfoEntity> page = this.page(
-                new Query<WareInfoEntity>().getPage(params),
+        IPage <WareInfoEntity> page = this.page(
+                new Query <WareInfoEntity>().getPage(params),
                 queryWrapper
         );
 
         return new PageUtils(page);
+    }
+
+    /**
+     * 获取运费信息
+     *
+     * @param addrId
+     * @return
+     */
+    @Override
+    public BigDecimal getFare(Long addrId) {
+        // 远程调用会员表，获取用户的收货地址信息。根据仓库和收货地址的距离来计算运费~
+        // TODO 可对接京东物流API或者快递100API
+        R r = memberFeignService.getReceiveAddressInfo(addrId);
+        if (r.getCode() == 0) {
+            MemberReceiveAddressVo memberReceiveAddress = r.getDataByName("memberReceiveAddress", new TypeReference <MemberReceiveAddressVo>() {
+            });
+            // 目前用手机号的最后一位作为运费
+            String phone = memberReceiveAddress.getPhone();
+            if (StringUtils.isNotBlank(phone)) {
+                return new BigDecimal(phone.substring(phone.length() - 1, phone.length()));
+            }
+            return new BigDecimal(0);
+        }
+        return new BigDecimal(0);
     }
 
 }
