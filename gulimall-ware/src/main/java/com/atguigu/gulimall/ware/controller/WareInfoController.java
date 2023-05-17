@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.Map;
 
+import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -90,7 +91,7 @@ public class WareInfoController {
      */
     @GetMapping("/fare")
     public R getFare(@RequestParam("addrId") Long addrId){
-        BigDecimal fare = wareInfoService.getFare(addrId);
+        FareAndAddressVo fare = wareInfoService.getFare(addrId);
         return R.ok().setData(fare);
     }
 
