@@ -667,7 +667,7 @@
 					<img th:src="${item.defaultImage}" class="yun"/>
 					<div class="mi" style="padding: 27px 0;">
 						<p style="overflow:hidden;"><span>[[${item.title}]]</span> </p>
-						<p><span style="color: red;" th:text="'￥'+${#numbers.formatDecimal(item.price,1,2)}"> ￥ 149.00</span> <span > x[[${item.count}]] </span> <span th:text="${item.hasStock ==true?'有货':'无货'}">有货</span></p>
+						<p><span style="color: red;" th:text="'￥'+${#numbers.formatDecimal(item.price,1,2)}"> ￥ 149.00</span> <span > x[[${item.count}]] </span> <span th:text="${orderConfirmData.stocks[item.skuId] ?'有货':'无货'}">有货</span></p>
 						<!--<p> <span>0.095kg</span></p>-->
 						<!--<p class="tui-1"><img src="/static/order/confirm/img/i_07.png" />支持7天无理由退货</p>-->
 					</div>

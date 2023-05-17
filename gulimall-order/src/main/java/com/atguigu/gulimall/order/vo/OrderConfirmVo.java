@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lxy
@@ -29,6 +30,10 @@ public class OrderConfirmVo {
      * TODO 积分，用户可以勾选积分抵扣对应的价格~
      */
     Integer integration;
+    /**
+     * 商品库存
+     */
+    Map <Long,Boolean> stocks;
 
 
     /**

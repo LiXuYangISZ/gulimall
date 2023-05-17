@@ -1,8 +1,12 @@
 package com.atguigu.gulimall.order.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.to.MemberTo;
+import com.atguigu.common.to.SkuHasStockTo;
+import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
+import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
 import com.atguigu.gulimall.order.vo.CartItemVo;
 import com.atguigu.gulimall.order.vo.MemberReceiveAddressVo;
@@ -16,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.stream.Collectors;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -41,6 +46,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     CartFeignService cartFeignService;
+
+    @Autowired
+    WareFeignService wareFeignService;
 
     @Autowired
     ThreadPoolExecutor executor;
@@ -93,7 +101,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             List <CartItemVo> cartItems = cartFeignService.currentUserCartItems();
             System.out.println("cartItems:"+cartItems);
             orderConfirmVo.setItems(cartItems);
-        }, executor);
+        }, executor).thenRunAsync(()->{
+            // 远程调用库存服务，查询商品库存情况
+            List <CartItemVo> cartItems = orderConfirmVo.getItems();
+            List <Long> skuIds = cartItems.stream().map(CartItemVo::getSkuId).collect(Collectors.toList());
+            R r = wareFeignService.getSkusHasStock(skuIds);
+            if(r.getCode()==0){
+                List <SkuHasStockTo> skuHasStock = r.getData(new TypeReference <List <SkuHasStockTo>>() {
+                });
+                Map <Long, Boolean> stockMap = skuHasStock.stream().collect(Collectors.toMap(SkuHasStockTo::getSkuId, SkuHasStockTo::getHasStock));
+                orderConfirmVo.setStocks(stockMap);
+            }
+        },executor);
 
 
         // 3、查询用户积分

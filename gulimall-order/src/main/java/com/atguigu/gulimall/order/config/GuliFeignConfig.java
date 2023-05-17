@@ -33,13 +33,16 @@ public class GuliFeignConfig {
                 //  思考：开始登录那里是不是也可以不存储了ThreadLocal了。直接通过RequestContextHolder获取。
                 //  理论上是可以的，只不过放在threadLocal中就不用类型转换了啥的，更方便~
                 ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
-                // 获取老请求
-                HttpServletRequest oldRequest = attributes.getRequest();
-                // if (oldRequest != null) {
+                if(attributes!=null){
+                    // 获取老请求
+                    HttpServletRequest oldRequest = attributes.getRequest();
+                    if (oldRequest != null) {
                     String cookie = oldRequest.getHeader("Cookie");
                     // 同步cookie到请求拦截器中。【OpenFeign调用前会加入到newRequest 中】
                     template.header("Cookie", cookie);
-                // }
+                    }
+                }
+
             }
         };
     }
