@@ -1,6 +1,7 @@
 package com.atguigu.gulimall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
+import com.atguigu.common.constant.order.OrderConstant;
 import com.atguigu.common.to.MemberTo;
 import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.utils.R;
@@ -13,10 +14,12 @@ import com.atguigu.gulimall.order.vo.MemberReceiveAddressVo;
 import com.atguigu.gulimall.order.vo.OrderConfirmVo;
 import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -52,6 +55,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     ThreadPoolExecutor executor;
+
+    @Autowired
+    StringRedisTemplate redisTemplate;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -123,7 +129,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
         CompletableFuture.allOf(memberFuture,cartFuture).get();
 
-        // TODO 防重令牌【防止用户在某一时刻不断的请求服务器】
+        // 5、防重令牌【防止用户在某一时刻不断的请求服务器】
+        String token = UUID.randomUUID().toString().replace("-", "");
+        orderConfirmVo.setOrderToken(token);
+        redisTemplate.opsForValue().set(OrderConstant.USER_ORDER_TOKEN_PREFIX+member.getId(),token);
+
         return orderConfirmVo;
     }
 
