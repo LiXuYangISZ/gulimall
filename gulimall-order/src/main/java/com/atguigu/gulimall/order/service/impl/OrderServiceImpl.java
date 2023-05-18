@@ -9,14 +9,14 @@ import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
 import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
-import com.atguigu.gulimall.order.vo.CartItemVo;
-import com.atguigu.gulimall.order.vo.MemberReceiveAddressVo;
-import com.atguigu.gulimall.order.vo.OrderConfirmVo;
+import com.atguigu.gulimall.order.vo.*;
 import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -135,6 +135,33 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         redisTemplate.opsForValue().set(OrderConstant.USER_ORDER_TOKEN_PREFIX+member.getId(),token);
 
         return orderConfirmVo;
+    }
+
+    @Override
+    public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
+        SubmitOrderResponseVo submitOrderResponseVo = new SubmitOrderResponseVo();
+        MemberTo member = LoginInterceptor.threadLocal.get();
+        String orderToken = orderSubmitVo.getOrderToken();
+        // 1、验证令牌【令牌的获取、对比和删除必须保证原子性】
+        // 0令牌失败 1 删除成功
+        String script="if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+        Long result = redisTemplate.execute(new DefaultRedisScript <Long>(script, Long.class), Arrays.asList(OrderConstant.USER_ORDER_TOKEN_PREFIX + member.getId()), orderToken);
+        if(result==0L){
+            submitOrderResponseVo.setCode(1);
+        }else{
+            // TODO 下单：去创建订单、验证令牌、验价格、锁库存...
+            submitOrderResponseVo.setCode(0);
+        }
+        // String redisToken = redisTemplate.opsForValue().get(OrderConstant.USER_ORDER_TOKEN_PREFIX + member.getId());
+        // if(orderToken.equals(redisToken)){
+        //     // 验证成功...
+        //     submitOrderResponseVo.setCode(0);
+        //     redisTemplate.delete(OrderConstant.USER_ORDER_TOKEN_PREFIX + member.getId());
+        // }else{
+        //     // 验证失败
+        //     submitOrderResponseVo.setCode(1);
+        // }
+        return submitOrderResponseVo;
     }
 
 }
