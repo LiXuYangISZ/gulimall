@@ -147,6 +147,18 @@ public class IndexController {
             return "login";
         }
     }
+    /**
+     * 用户访问登录页
+     * @param session
+     * @return
+     */
+    @GetMapping("/exit")
+    public String exit(HttpSession session){
+        session.removeAttribute(AuthServerConstant.LOGIN_USER);
+        return "redirect:http://gulimall.com";
+    }
+
+
 
 
 }

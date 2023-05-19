@@ -100,6 +100,7 @@
           </li>
           <li>
             <a href="http://auth.gulimall.com/register.html" class="li_2" th:if="${session.loginUser == null}">免费注册</a>
+            <a href="http://auth.gulimall.com/exit" class="li_2" th:if="${session.loginUser != null}">退出</a>
           </li>
           <span>|</span>
           <li>
