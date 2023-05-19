@@ -128,6 +128,7 @@ public class IndexController {
         }else {
             Map <String, String> errors = new HashMap <>();
             errors.put("msg",r.getDataByName("msg",new TypeReference <String>(){}));
+            // session.setAttribute("errors",r.getDataByName("msg",new TypeReference <String>(){}));
             redirectAttributes.addFlashAttribute("errors",errors);
             return "redirect:http://auth.gulimall.com/login.html";
         }

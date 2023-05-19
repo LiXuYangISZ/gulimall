@@ -1,5 +1,6 @@
 package com.atguigu.gulimall.order.web;
 
+import com.atguigu.gulimall.order.entity.OrderEntity;
 import com.atguigu.gulimall.order.service.OrderService;
 import com.atguigu.gulimall.order.vo.OrderConfirmVo;
 import com.atguigu.gulimall.order.vo.OrderSubmitVo;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 
 /**
@@ -44,11 +46,15 @@ public class OrderWebController {
      * @return
      */
     @PostMapping("/submitOrder")
-    public String submitOrder(OrderSubmitVo orderSubmitVo){
+    public String submitOrder(OrderSubmitVo orderSubmitVo,Model model){
         System.out.println("下单提交的数据..."+orderSubmitVo);
         SubmitOrderResponseVo response = orderService.submitOrder(orderSubmitVo);
         if(response.getCode()==0){
             // 下单成功来到支付选择页
+            OrderEntity orderEntity = new OrderEntity();
+            orderEntity.setOrderSn(UUID.randomUUID().toString().replace("-", ""));
+            orderEntity.setPayAmount(orderSubmitVo.getPayPrice());
+            model.addAttribute("order",orderEntity);
             return "pay";
         }else{
             // 下单失败回到订单确认页重新确认订单信息
