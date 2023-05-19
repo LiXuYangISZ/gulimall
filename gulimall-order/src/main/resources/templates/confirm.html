@@ -997,6 +997,9 @@
 				$("#addrIdInput").val(addrId);
 				$.get("http://gulimall.com/api/ware/wareinfo/fare?addrId=" + addrId, function (resp) {
 					console.log(resp);
+					if(resp.data.face == null){
+						resp.data.face = 0;
+					}
 					$("#fareEle").text(resp.data.fare);
 					var total = [[${orderConfirmData.total}]];
 					//设置运费等

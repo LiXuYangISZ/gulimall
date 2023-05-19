@@ -222,7 +222,7 @@ public class MemberServiceImpl extends ServiceImpl <MemberDao, MemberEntity> imp
      * @throws UsernameExistException
      */
     private void checkUsernameUnique(String userName) throws UsernameExistException {
-        Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper <MemberEntity>().eq(MemberEntity::getUsername, userName));
+        Integer count = this.baseMapper.selectCount(new LambdaQueryWrapper <MemberEntity>().eq(MemberEntity::getNickname, userName));
         if (count > 0) {
             throw new UsernameExistException();
         }
