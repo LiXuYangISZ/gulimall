@@ -5,11 +5,14 @@ import com.atguigu.common.constant.order.OrderConstant;
 import com.atguigu.common.to.MemberTo;
 import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.utils.R;
+import com.atguigu.gulimall.order.entity.OrderItemEntity;
+import com.atguigu.gulimall.order.enume.OrderStatusEnum;
 import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
 import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
 import com.atguigu.gulimall.order.vo.*;
+import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -40,6 +43,12 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 @Service("orderService")
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
+
+    /**
+     * 把所需的对象放置ThreadLocal中后，就无须每次传参了，只要是同一个线程都可以获取到
+     * 【这里只是演示下，其实使用参数也行~~~】
+     */
+    private ThreadLocal<OrderSubmitVo> confirmVoThreadLocal = new ThreadLocal <>();
 
     @Autowired
     MemberFeignService memberFeignService;
@@ -138,8 +147,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return orderConfirmVo;
     }
 
+    /**
+     * 提交订单
+     * @param orderSubmitVo
+     * @return
+     */
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
+        confirmVoThreadLocal.set(orderSubmitVo);
         SubmitOrderResponseVo submitOrderResponseVo = new SubmitOrderResponseVo();
         MemberTo member = LoginInterceptor.threadLocal.get();
         String orderToken = orderSubmitVo.getOrderToken();
@@ -151,18 +166,87 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             submitOrderResponseVo.setCode(1);
         }else{
             // TODO 下单：去创建订单、验证令牌、验价格、锁库存...
+            OrderCreateVo order = createOrder();
             submitOrderResponseVo.setCode(0);
         }
-        // String redisToken = redisTemplate.opsForValue().get(OrderConstant.USER_ORDER_TOKEN_PREFIX + member.getId());
-        // if(orderToken.equals(redisToken)){
-        //     // 验证成功...
-        //     submitOrderResponseVo.setCode(0);
-        //     redisTemplate.delete(OrderConstant.USER_ORDER_TOKEN_PREFIX + member.getId());
-        // }else{
-        //     // 验证失败
-        //     submitOrderResponseVo.setCode(1);
-        // }
         return submitOrderResponseVo;
     }
+
+    /**
+     * 生成订单
+     * @return
+     */
+    private OrderCreateVo createOrder() {
+        OrderCreateVo createVo = new OrderCreateVo();
+        // 1、创建Order
+        String orderSn = IdWorker.getTimeId();
+        OrderEntity orderEntity = buildOrder(orderSn);
+        createVo.setOrder(orderEntity);
+
+        // 2、创建购物车中的所有选中订单项
+        List <OrderItemEntity> orderItems = buildOrderItems(orderSn);
+        createVo.setOrderItems(orderItems);
+
+        // 3、验价
+
+
+        return null;
+    }
+
+    /**
+     * 构建所有订单项数据
+     * @param orderSn
+     * @return
+     */
+    private List <OrderItemEntity> buildOrderItems(String orderSn) {
+        List <CartItemVo> cartItemVos = cartFeignService.currentUserCartItems();
+        return cartItemVos.stream().map(cartItem -> {
+            OrderItemEntity orderItem = buildOrderItem(cartItem);
+            return orderItem;
+        }).collect(Collectors.toList());
+    }
+
+    /**
+     * 构建订单项
+     * @param cartItem
+     * @return
+     */
+    private OrderItemEntity buildOrderItem(CartItemVo cartItem) {
+        return null;
+    }
+
+    /**
+     * 构建订单信息
+     * @return
+     */
+    private OrderEntity buildOrder(String orderSn) {
+        OrderSubmitVo orderSubmitVo = confirmVoThreadLocal.get();
+        // 1、创建订单
+        OrderEntity orderEntity = new OrderEntity();
+
+        // 创建订单号
+        orderEntity.setOrderSn(orderSn);
+        // 获取订单地址信息
+        R fare = wareFeignService.getFare(orderSubmitVo.getAddrId());
+        FareAndAddressVo fareAndAddressData = fare.getData(new TypeReference <FareAndAddressVo>() {
+        });
+        // 获取订单运费信息
+        orderEntity.setFreightAmount(fareAndAddressData.getFare());
+        // 设置收货人信息
+        orderEntity.setReceiverCity(fareAndAddressData.getAddress().getCity());
+        orderEntity.setReceiverDetailAddress(fareAndAddressData.getAddress().getDetailAddress());
+        orderEntity.setReceiverName(fareAndAddressData.getAddress().getName());
+        orderEntity.setReceiverPhone(fareAndAddressData.getAddress().getPhone());
+        orderEntity.setReceiverProvince(fareAndAddressData.getAddress().getProvince());
+        orderEntity.setReceiverRegion(fareAndAddressData.getAddress().getRegion());
+        orderEntity.setReceiverPostCode(fareAndAddressData.getAddress().getPostCode());
+        orderEntity.setBillReceiverPhone(fareAndAddressData.getAddress().getPhone());
+        orderEntity.setMemberId(fareAndAddressData.getAddress().getMemberId());
+        // 设置订单状态
+        orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());
+        orderEntity.setSourceType(0);
+        return orderEntity;
+    }
+
 
 }
