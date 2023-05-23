@@ -9,10 +9,13 @@ import com.atguigu.gulimall.order.entity.OrderItemEntity;
 import com.atguigu.gulimall.order.enume.OrderStatusEnum;
 import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
+import com.atguigu.gulimall.order.feign.ProductFeignService;
 import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
 import com.atguigu.gulimall.order.vo.*;
+import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
+import com.google.common.base.Joiner;
 import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -49,6 +52,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * 【这里只是演示下，其实使用参数也行~~~】
      */
     private ThreadLocal<OrderSubmitVo> confirmVoThreadLocal = new ThreadLocal <>();
+
+    @Autowired
+    ProductFeignService productFeignService;
 
     @Autowired
     MemberFeignService memberFeignService;
@@ -200,10 +206,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      */
     private List <OrderItemEntity> buildOrderItems(String orderSn) {
         List <CartItemVo> cartItemVos = cartFeignService.currentUserCartItems();
-        return cartItemVos.stream().map(cartItem -> {
-            OrderItemEntity orderItem = buildOrderItem(cartItem);
-            return orderItem;
-        }).collect(Collectors.toList());
+        if(cartItemVos!=null && cartItemVos.size() > 0){
+            return cartItemVos.stream().map(cartItem -> {
+                OrderItemEntity orderItem = buildOrderItem(cartItem);
+                orderItem.setOrderSn(orderSn);
+                return orderItem;
+            }).collect(Collectors.toList());
+        }
+        return null;
     }
 
     /**
@@ -212,7 +222,33 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * @return
      */
     private OrderItemEntity buildOrderItem(CartItemVo cartItem) {
-        return null;
+        OrderItemEntity orderItem = new OrderItemEntity();
+
+        // 1、封装SPU信息
+        R r = productFeignService.getSpuInfoBySkuId(cartItem.getSkuId());
+        SpuInfoVo spuInfo = r.getData(new TypeReference <SpuInfoVo>() {
+        });
+        orderItem.setSpuBrand(spuInfo.getBrandId().toString());
+        orderItem.setSpuId(spuInfo.getId());
+        orderItem.setSpuName(spuInfo.getSpuName());
+        orderItem.setCategoryId(spuInfo.getCatalogId());
+
+        // 2、封装SKU信息
+        orderItem.setSkuId(cartItem.getSkuId());
+        orderItem.setSkuName(cartItem.getTitle());
+        orderItem.setSkuPic(cartItem.getDefaultImage());
+        orderItem.setSkuPrice(cartItem.getPrice());
+        orderItem.setSkuQuantity(cartItem.getCount().intValue());
+        String attrStr = Joiner.on(";").skipNulls().join(cartItem.getAttrs());
+        orderItem.setSkuAttrsVals(attrStr);
+
+        // 3、优惠信息【TODO】
+
+        // 4、积分信息
+        orderItem.setGiftGrowth(cartItem.getPrice().intValue());
+        orderItem.setGiftIntegration(cartItem.getPrice().intValue());
+
+        return orderItem;
     }
 
     /**
