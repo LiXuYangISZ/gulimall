@@ -1,6 +1,5 @@
 package com.atguigu.gulimall.order.vo;
 
-import com.sun.xml.internal.bind.v2.TODO;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -22,7 +21,7 @@ public class OrderConfirmVo {
     /**
      * 所有选中的购物项
      */
-    List<CartItemVo> items;
+    List<OrderItemVo> items;
 
     // TODO 发票记录... 可以按照搞张发票表，存放用户的发票信息。每次列出来，供用户进行选择
     // TODO 优惠券信息 可以查询coupon表中是否有符合条件的优惠券，如果有，列出来，供用户进行选择~
@@ -44,7 +43,7 @@ public class OrderConfirmVo {
         if(items.size()==0){
             return 0L;
         }else {
-            return items.stream().map(CartItemVo::getCount).reduce(Long::sum).get();
+            return items.stream().map(OrderItemVo::getCount).reduce(Long::sum).get();
         }
     }
 
@@ -55,7 +54,7 @@ public class OrderConfirmVo {
      */
     public BigDecimal getTotal() {
         if(items!=null&&items.size() > 0){
-            return items.stream().map(CartItemVo::getTotalPrice).reduce(BigDecimal::add).get();
+            return items.stream().map(OrderItemVo::getTotalPrice).reduce(BigDecimal::add).get();
         }else{
             return new BigDecimal(0);
         }

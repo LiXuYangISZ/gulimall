@@ -102,4 +102,6 @@ public class OrderItemEntity implements Serializable {
 	 */
 	private Integer giftGrowth;
 
+	// TODO 理论上 OrderItem 也应该有对应的创建时间、修改时间...
+
 }

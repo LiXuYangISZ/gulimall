@@ -1,6 +1,5 @@
-package com.atguigu.gulimall.order.vo;
+package com.atguigu.gulimall.ware.vo;
 
-import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -10,11 +9,11 @@ import java.util.List;
 /**
  * @author lxy
  * @version 1.0
- * @Description
+ * @Description 【OrderItemVO】
  * @date 2023/5/14 22:56
  */
 @Data
-public class CartItemVo implements Serializable {
+public class OrderItemVo implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**

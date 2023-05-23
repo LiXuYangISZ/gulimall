@@ -1,10 +1,13 @@
 package com.atguigu.gulimall.ware.service;
 
 import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
+import com.atguigu.gulimall.ware.vo.LockStockResult;
+import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.atguigu.common.utils.PageUtils;
 import com.atguigu.gulimall.ware.entity.WareInfoEntity;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -19,5 +22,7 @@ public interface WareInfoService extends IService<WareInfoEntity> {
     PageUtils queryPage(Map<String, Object> params);
 
     FareAndAddressVo getFare(Long addrId);
+
+    List<LockStockResult> orderLockStock(WareSkuLockVo vo);
 }
 

@@ -2,9 +2,12 @@ package com.atguigu.gulimall.ware.controller;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 
 import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
+import com.atguigu.gulimall.ware.vo.LockStockResult;
+import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -94,5 +97,17 @@ public class WareInfoController {
         FareAndAddressVo fare = wareInfoService.getFare(addrId);
         return R.ok().setData(fare);
     }
+
+    /**
+     * 锁定库存
+     * @param vo
+     * @return
+     */
+    @PostMapping("/lock/order")
+    public R orderLockStock(WareSkuLockVo vo){
+        List <LockStockResult> lockStockResults =  wareInfoService.orderLockStock(vo);
+        return R.ok().setData(lockStockResults);
+    }
+
 
 }

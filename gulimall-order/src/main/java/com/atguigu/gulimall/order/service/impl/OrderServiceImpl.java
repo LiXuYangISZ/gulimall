@@ -12,11 +12,10 @@ import com.atguigu.gulimall.order.feign.MemberFeignService;
 import com.atguigu.gulimall.order.feign.ProductFeignService;
 import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
+import com.atguigu.gulimall.order.service.OrderItemService;
 import com.atguigu.gulimall.order.vo.*;
-import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.google.common.base.Joiner;
-import org.bouncycastle.cert.ocsp.Req;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -41,6 +40,7 @@ import com.atguigu.common.utils.Query;
 import com.atguigu.gulimall.order.dao.OrderDao;
 import com.atguigu.gulimall.order.entity.OrderEntity;
 import com.atguigu.gulimall.order.service.OrderService;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 
@@ -74,6 +74,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     StringRedisTemplate redisTemplate;
+
+    @Autowired
+    OrderItemService orderItemService;
 
     @Override
     public PageUtils queryPage(Map<String, Object> params) {
@@ -120,14 +123,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // 2、远程查询用户选中的商品列表
             // 每一个新线程都来共享之前的请求数据
             RequestContextHolder.setRequestAttributes(attributes);
-            List <CartItemVo> cartItems = cartFeignService.currentUserCartItems();
+            List <OrderItemVo> cartItems = cartFeignService.currentUserCartItems();
             System.out.println("cartItems:"+cartItems);
             orderConfirmVo.setItems(cartItems);
         }, executor).thenRunAsync(()->{
             // 远程调用库存服务，查询商品库存情况
-            List <CartItemVo> cartItems = orderConfirmVo.getItems();
+            List <OrderItemVo> orderItems = orderConfirmVo.getItems();
             // TODO 只有当购物车中有商品才可以去结算哦~
-            List <Long> skuIds = cartItems.stream().map(CartItemVo::getSkuId).collect(Collectors.toList());
+            List <Long> skuIds = orderItems.stream().map(OrderItemVo::getSkuId).collect(Collectors.toList());
             R r = wareFeignService.getSkusHasStock(skuIds);
             if(r.getCode()==0){
                 List <SkuHasStockTo> skuHasStock = r.getData(new TypeReference <List <SkuHasStockTo>>() {
@@ -159,6 +162,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * @param orderSubmitVo
      * @return
      */
+    @Transactional
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
         confirmVoThreadLocal.set(orderSubmitVo);
@@ -172,15 +176,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         if(result==0L){
             submitOrderResponseVo.setCode(1);
         }else{
-            // 令牌验证成功
-            // TODO 下单：去创建订单、验价格、锁库存...
             // 1、创建订单
             OrderCreateVo order = createOrder();
             submitOrderResponseVo.setCode(0);
-
-            // 2、验证价格
             /**
-             * 验证价格
+             * 2、验证价格
              * payAmount:后台计算过的实际价格
              * payPrice：前台传递过去的价格
              */
@@ -191,10 +191,41 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 submitOrderResponseVo.setCode(2);
                 return submitOrderResponseVo;
             }
-            // 验价成功
+            // 3、保存订单
+            saveOrder(order);
+            /**
+             * 4、锁库存【只要有异常就回滚订单数据】
+             * 所有订单项（skuId、num）
+             */
+            WareSkuLockVo wareSkuLockVo = new WareSkuLockVo();
+            wareSkuLockVo.setOrderSn(order.getOrder().getOrderSn());
+            List <OrderItemVo> orderItemVos = order.getOrderItems().stream().map(orderItem -> {
+                OrderItemVo orderItemVo = new OrderItemVo();
+                orderItemVo.setSkuId(orderItem.getSkuId());
+                orderItemVo.setCount(orderItem.getSkuQuantity().longValue());
+                return orderItemVo;
+            }).collect(Collectors.toList());
+            wareSkuLockVo.setLockItems(orderItemVos);
+            R r = wareFeignService.orderLockStock(wareSkuLockVo);
+            if(r.getCode() == 0){
+                // 锁成功,继续后序操作~
+            }else{
+                // 锁定失败
+            }
 
         }
         return submitOrderResponseVo;
+    }
+
+    /**
+     * 保存订单信息
+     * @param orderCreateVo
+     */
+    private void saveOrder(OrderCreateVo orderCreateVo) {
+        OrderEntity order = orderCreateVo.getOrder();
+        List <OrderItemEntity> orderItems = orderCreateVo.getOrderItems();
+        this.save(order);
+        orderItemService.saveBatch(orderItems);
     }
 
     /**
@@ -263,10 +294,10 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      * @return
      */
     private List <OrderItemEntity> buildOrderItems(String orderSn) {
-        List <CartItemVo> cartItemVos = cartFeignService.currentUserCartItems();
-        if(cartItemVos!=null && cartItemVos.size() > 0){
-            return cartItemVos.stream().map(cartItem -> {
-                OrderItemEntity orderItem = buildOrderItem(cartItem);
+        List <OrderItemVo> orderItemVos = cartFeignService.currentUserCartItems();
+        if(orderItemVos!=null && orderItemVos.size() > 0){
+            return orderItemVos.stream().map(orderItemVo -> {
+                OrderItemEntity orderItem = buildOrderItem(orderItemVo);
                 orderItem.setOrderSn(orderSn);
                 return orderItem;
             }).collect(Collectors.toList());
@@ -276,14 +307,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 构建订单项
-     * @param cartItem
+     * @param orderItemVo
      * @return
      */
-    private OrderItemEntity buildOrderItem(CartItemVo cartItem) {
+    private OrderItemEntity buildOrderItem(OrderItemVo orderItemVo) {
         OrderItemEntity orderItem = new OrderItemEntity();
 
         // 1、封装SPU信息
-        R r = productFeignService.getSpuInfoBySkuId(cartItem.getSkuId());
+        R r = productFeignService.getSpuInfoBySkuId(orderItemVo.getSkuId());
         SpuInfoVo spuInfo = r.getData(new TypeReference <SpuInfoVo>() {
         });
         orderItem.setSpuBrand(spuInfo.getBrandId().toString());
@@ -292,19 +323,19 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderItem.setCategoryId(spuInfo.getCatalogId());
 
         // 2、封装SKU信息
-        orderItem.setSkuId(cartItem.getSkuId());
-        orderItem.setSkuName(cartItem.getTitle());
-        orderItem.setSkuPic(cartItem.getDefaultImage());
-        orderItem.setSkuPrice(cartItem.getPrice());
-        orderItem.setSkuQuantity(cartItem.getCount().intValue());
-        String attrStr = Joiner.on(";").skipNulls().join(cartItem.getAttrs());
+        orderItem.setSkuId(orderItemVo.getSkuId());
+        orderItem.setSkuName(orderItemVo.getTitle());
+        orderItem.setSkuPic(orderItemVo.getDefaultImage());
+        orderItem.setSkuPrice(orderItemVo.getPrice());
+        orderItem.setSkuQuantity(orderItemVo.getCount().intValue());
+        String attrStr = Joiner.on(";").skipNulls().join(orderItemVo.getAttrs());
         orderItem.setSkuAttrsVals(attrStr);
 
         // 3、TODO 远程查询优惠信息【暂不用做】
 
         // 4、积分信息
-        orderItem.setGiftGrowth(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount())).intValue());
-        orderItem.setGiftIntegration(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount())).intValue());
+        orderItem.setGiftGrowth(orderItemVo.getPrice().multiply(new BigDecimal(orderItemVo.getCount())).intValue());
+        orderItem.setGiftIntegration(orderItemVo.getPrice().multiply(new BigDecimal(orderItemVo.getCount())).intValue());
 
         // 5、订单项的价格信息
         // TODO 设置减免信息，实际开发中需要远程查询Coupon库

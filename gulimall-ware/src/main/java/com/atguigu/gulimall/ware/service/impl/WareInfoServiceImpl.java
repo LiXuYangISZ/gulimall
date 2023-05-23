@@ -4,13 +4,16 @@ import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.ware.feign.MemberFeignService;
 import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
+import com.atguigu.gulimall.ware.vo.LockStockResult;
 import com.atguigu.gulimall.ware.vo.MemberReceiveAddressVo;
+import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -70,6 +73,11 @@ public class WareInfoServiceImpl extends ServiceImpl <WareInfoDao, WareInfoEntit
         }
         fareAndAddressVo.setAddress(memberReceiveAddress);
         return fareAndAddressVo;
+    }
+
+    @Override
+    public List <LockStockResult> orderLockStock(WareSkuLockVo vo) {
+        return null;
     }
 
 }

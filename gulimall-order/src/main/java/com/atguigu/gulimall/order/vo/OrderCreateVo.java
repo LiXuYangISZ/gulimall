@@ -24,12 +24,4 @@ public class OrderCreateVo {
      * 订单项列表
      */
     private List <OrderItemEntity> orderItems;
-    /**
-     * 应付价格
-     */
-    private BigDecimal payPrice;
-    /**
-     * 运费
-     */
-    private BigDecimal fare;
 }
