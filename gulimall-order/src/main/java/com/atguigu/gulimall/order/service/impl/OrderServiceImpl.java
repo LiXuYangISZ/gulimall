@@ -22,6 +22,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -171,9 +172,27 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         if(result==0L){
             submitOrderResponseVo.setCode(1);
         }else{
-            // TODO 下单：去创建订单、验证令牌、验价格、锁库存...
+            // 令牌验证成功
+            // TODO 下单：去创建订单、验价格、锁库存...
+            // 1、创建订单
             OrderCreateVo order = createOrder();
             submitOrderResponseVo.setCode(0);
+
+            // 2、验证价格
+            /**
+             * 验证价格
+             * payAmount:后台计算过的实际价格
+             * payPrice：前台传递过去的价格
+             */
+            BigDecimal payAmount = order.getOrder().getPayAmount();
+            BigDecimal payPrice = orderSubmitVo.getPayPrice();
+            if(Math.abs(payAmount.subtract(payPrice).doubleValue()) >= 0.01){
+                // 验价失败
+                submitOrderResponseVo.setCode(2);
+                return submitOrderResponseVo;
+            }
+            // 验价成功
+
         }
         return submitOrderResponseVo;
     }
@@ -184,6 +203,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      */
     private OrderCreateVo createOrder() {
         OrderCreateVo createVo = new OrderCreateVo();
+
         // 1、创建Order
         String orderSn = IdWorker.getTimeId();
         OrderEntity orderEntity = buildOrder(orderSn);
@@ -193,10 +213,48 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         List <OrderItemEntity> orderItems = buildOrderItems(orderSn);
         createVo.setOrderItems(orderItems);
 
-        // 3、验价
+        // 3、设置价格积分相关
+        computePrice(orderEntity,orderItems);
+        return createVo;
+    }
 
+    /**
+     * 设置价格、积分相关信息
+     * @param orderEntity
+     * @param orderItems
+     * @return
+     */
+    private void computePrice(OrderEntity orderEntity, List <OrderItemEntity> orderItems) {
+        BigDecimal totalAmount = new BigDecimal("0.0");
+        BigDecimal couponAmount = new BigDecimal("0.0");
+        BigDecimal integrationAmount = new BigDecimal("0.0");
+        BigDecimal promotionAmount = new BigDecimal("0.0");
+        Integer integration = 0;
+        Integer growth = 0;
 
-        return null;
+        //叠加每一个订单项的信息
+        for (OrderItemEntity entity : orderItems) {
+            couponAmount = couponAmount.add(entity.getCouponAmount());
+            integrationAmount = integrationAmount.add(entity.getIntegrationAmount());
+            promotionAmount = promotionAmount.add(entity.getPromotionAmount());
+            totalAmount = totalAmount.add(entity.getRealAmount());
+            integration += entity.getGiftIntegration();
+            growth += entity.getGiftGrowth();
+        }
+
+        // 订单价格相关
+        orderEntity.setTotalAmount(totalAmount);
+        orderEntity.setPayAmount(totalAmount.add(orderEntity.getFreightAmount()));
+        orderEntity.setPromotionAmount(promotionAmount);
+        orderEntity.setIntegrationAmount(integrationAmount);
+        orderEntity.setCouponAmount(couponAmount);
+
+        //设置积分等信息
+        orderEntity.setIntegration(integration);
+        orderEntity.setGrowth(growth);
+
+        // 设置删除状态
+        orderEntity.setDeleteStatus(0);
     }
 
     /**
@@ -242,12 +300,22 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         String attrStr = Joiner.on(";").skipNulls().join(cartItem.getAttrs());
         orderItem.setSkuAttrsVals(attrStr);
 
-        // 3、优惠信息【TODO】
+        // 3、TODO 远程查询优惠信息【暂不用做】
 
         // 4、积分信息
-        orderItem.setGiftGrowth(cartItem.getPrice().intValue());
-        orderItem.setGiftIntegration(cartItem.getPrice().intValue());
+        orderItem.setGiftGrowth(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount())).intValue());
+        orderItem.setGiftIntegration(cartItem.getPrice().multiply(new BigDecimal(cartItem.getCount())).intValue());
 
+        // 5、订单项的价格信息
+        // TODO 设置减免信息，实际开发中需要远程查询Coupon库
+        orderItem.setPromotionAmount(BigDecimal.ZERO);
+        orderItem.setCouponAmount(BigDecimal.ZERO);
+        orderItem.setIntegrationAmount(BigDecimal.ZERO);
+        BigDecimal originPrice = orderItem.getSkuPrice().multiply(new BigDecimal(orderItem.getSkuQuantity()));
+        BigDecimal realPrice = originPrice.subtract(orderItem.getPromotionAmount())
+                .subtract(orderItem.getCouponAmount())
+                .subtract(orderItem.getIntegrationAmount());
+        orderItem.setRealAmount(realPrice);
         return orderItem;
     }
 
@@ -257,17 +325,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      */
     private OrderEntity buildOrder(String orderSn) {
         OrderSubmitVo orderSubmitVo = confirmVoThreadLocal.get();
-        // 1、创建订单
+        // 创建订单
         OrderEntity orderEntity = new OrderEntity();
-
         // 创建订单号
         orderEntity.setOrderSn(orderSn);
         // 获取订单地址信息
         R fare = wareFeignService.getFare(orderSubmitVo.getAddrId());
         FareAndAddressVo fareAndAddressData = fare.getData(new TypeReference <FareAndAddressVo>() {
         });
+
         // 获取订单运费信息
         orderEntity.setFreightAmount(fareAndAddressData.getFare());
+
         // 设置收货人信息
         orderEntity.setReceiverCity(fareAndAddressData.getAddress().getCity());
         orderEntity.setReceiverDetailAddress(fareAndAddressData.getAddress().getDetailAddress());
@@ -278,9 +347,11 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         orderEntity.setReceiverPostCode(fareAndAddressData.getAddress().getPostCode());
         orderEntity.setBillReceiverPhone(fareAndAddressData.getAddress().getPhone());
         orderEntity.setMemberId(fareAndAddressData.getAddress().getMemberId());
+
         // 设置订单状态
         orderEntity.setStatus(OrderStatusEnum.CREATE_NEW.getCode());
         orderEntity.setSourceType(0);
+        orderEntity.setAutoConfirmDay(7);
         return orderEntity;
     }
 
