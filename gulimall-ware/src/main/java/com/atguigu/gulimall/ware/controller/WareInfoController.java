@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
 import com.atguigu.gulimall.ware.vo.LockStockResult;
 import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
@@ -105,9 +106,11 @@ public class WareInfoController {
      */
     @PostMapping("/lock/order")
     public R orderLockStock(WareSkuLockVo vo){
-        List <LockStockResult> lockStockResults =  wareInfoService.orderLockStock(vo);
-        return R.ok().setData(lockStockResults);
+        try {
+            wareInfoService.orderLockStock(vo);
+            return R.ok();
+        }catch (Exception e){
+            return R.error(BizCodeEnum.NO_STOCK_EXCEPTION.getCode(),BizCodeEnum.NO_STOCK_EXCEPTION.getMessage());
+        }
     }
-
-
 }
