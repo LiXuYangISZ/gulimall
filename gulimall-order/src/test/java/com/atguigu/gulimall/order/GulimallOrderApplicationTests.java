@@ -13,6 +13,7 @@ import org.springframework.amqp.rabbit.connection.CorrelationData;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Date;
@@ -21,6 +22,7 @@ import java.util.UUID;
 @Slf4j
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@EnableAspectJAutoProxy(proxyTargetClass = true) // 开启aspectj动态代理功能，以后所有的动态代理都是aspectj创建的。通过设置exposeProxy暴露代理对象
 public class GulimallOrderApplicationTests {
 
     @Autowired
