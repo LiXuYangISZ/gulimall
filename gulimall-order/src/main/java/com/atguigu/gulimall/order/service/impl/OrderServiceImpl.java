@@ -160,6 +160,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     /**
      * 提交订单
+     *
+     *MY NOTES
+     * @Transactional：本地事务。在分布式系统中，只能控制自己的回滚，控制不了其他服务的回滚。
+     *  分布式事务解决方案（Seata）出现的最大原因：网络原因（真失败还是假失败）+分布式机器
+     * 举例：
+     *   ① 网络原因。比如 调用锁库存的服务，由于网络原因出现了超时。Order这边得事务就会回滚，但是Ware那边锁库存成功了。
+     *     从而就会出现，下单失败，但是库存锁成功了~
+     *   ② 分布式机器。比如库存锁成功了，但是下面扣减积分的时候出现了异常。然后Order进行回滚，但是锁定的库存无法进行回滚了。
+     *   因为你本地事务是无法控制人家远程服务的事务的。事务本质是在一个连接中的多个操作，而不同服务肯定对应着不同的连接了。
+     *
      * @param orderSubmitVo
      * @return
      */
@@ -206,11 +216,14 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 return orderItemVo;
             }).collect(Collectors.toList());
             wareSkuLockVo.setLockItems(orderItemVos);
+            // TODO 模拟库存扣减成功了，但是网络原因超时。会出现 订单回滚，库存不滚。
             R r = wareFeignService.orderLockStock(wareSkuLockVo);
             if(r.getCode() == 0){
                 // 锁成功
                 submitOrderResponseVo.setCode(0);
                 submitOrderResponseVo.setOrder(order.getOrder());
+                // TODO 模拟远程扣减积分出现异常。通过现象可以看出订单回滚，库存不会滚~
+                // int i = 10 / 0;
             }else{
                 // MY NOTES 为了保证事务，这里改为抛出异常，不然这里只是一个普通的返回，订单数据依然可以保存成功。
                 throw new NoStockException();
