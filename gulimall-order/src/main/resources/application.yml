@@ -36,5 +36,12 @@
     db-config:
       id-type: auto #设置id自增
 
+ feign:
+   client:
+     config:
+       default:
+         connectTimeout: 10000    # 10秒连接超时
+         readTimeout: 30000      # 30秒读取超时
+
  server:
    port: 9000

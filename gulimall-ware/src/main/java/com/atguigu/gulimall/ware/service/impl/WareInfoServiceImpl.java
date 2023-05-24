@@ -68,7 +68,7 @@ public class WareInfoServiceImpl extends ServiceImpl <WareInfoDao, WareInfoEntit
         String phone = memberReceiveAddress.getPhone();
         if (StringUtils.isNotBlank(phone)) {
             fareAndAddressVo.setFare(new BigDecimal(phone.substring(phone.length() - 1)));
-        }else{
+        } else {
             fareAndAddressVo.setFare(new BigDecimal(0));
         }
         fareAndAddressVo.setAddress(memberReceiveAddress);
@@ -78,22 +78,26 @@ public class WareInfoServiceImpl extends ServiceImpl <WareInfoDao, WareInfoEntit
     /**
      * 锁定订单中对应的商品库存：按照下单的收货地址，找到就近仓库，锁定库存
      *
-     * @Transactional 默认不声明要回滚的异常的话，所有运行时异常都会回滚
      * @param vo
      * @return
+     * @Transactional 默认不声明要回滚的异常的话，所有运行时异常都会回滚
      */
     @Transactional(rollbackFor = NoStockException.class)
     @Override
     public Boolean orderLockStock(WareSkuLockVo vo) {
         // 1、找到每个商品有库存的仓库列表
         List <OrderItemVo> lockItems = vo.getLockItems();
+        if (lockItems == null || lockItems.size() == 0) {
+            return false;
+        }
         List <SkuWareHasStock> skuWareHasStocks = lockItems.stream().map(orderItem -> {
             SkuWareHasStock skuWareHasStock = new SkuWareHasStock();
             skuWareHasStock.setCount(orderItem.getCount());
             Long skuId = orderItem.getSkuId();
             // 查询该商品有库存的仓库
-            List<Long> wareIds =  this.baseMapper.listWareIdsHasSkuStock(skuId);
+            List <Long> wareIds = this.baseMapper.listWareIdsHasSkuStock(skuId);
             skuWareHasStock.setWareId(wareIds);
+            skuWareHasStock.setSkuId(skuId);
             return skuWareHasStock;
         }).collect(Collectors.toList());
 
@@ -102,19 +106,19 @@ public class WareInfoServiceImpl extends ServiceImpl <WareInfoDao, WareInfoEntit
             Boolean skuWareIsLock = false;
             Long skuId = skuWareHasStock.getSkuId();
             List <Long> wareIds = skuWareHasStock.getWareId();
-             // 所有仓库中都没有，抛出异常【无需看后序其他商品是否可以锁库存成功，一件失败，全部失败！！！】
-            if(wareIds == null || wareIds.size() == 0){
+            // 所有仓库中都没有，抛出异常【无需看后序其他商品是否可以锁库存成功，一件失败，全部失败！！！】
+            if (wareIds == null || wareIds.size() == 0) {
                 throw new NoStockException(skuId);
             }
             // 开始遍历所有的仓库，进行锁定，知道锁定成功，遍历结束。
             for (Long wareId : wareIds) {
-                Long count = this.baseMapper.lockSkuStock(skuId,wareId,skuWareHasStock.getCount());
-                if(count>0){
+                Long count = this.baseMapper.lockSkuStock(skuId, wareId, skuWareHasStock.getCount());
+                if (count > 0) {
                     skuWareIsLock = true;
                     break;
                 }
             }
-            if(!skuWareIsLock){
+            if (!skuWareIsLock) {
                 // 当前商品都没有锁定
                 throw new NoStockException(skuId);
             }

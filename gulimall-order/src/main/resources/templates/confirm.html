@@ -589,7 +589,9 @@
 		<!--</div>-->
 		<!--主体部分-->
 		<!--TODO -->
-		<p class="p1" style="padding-left: 73px;">填写并核对订单信息</p>
+		<p class="p1" style="padding-left: 73px;">填写并核对订单信息
+		<span style="color: red" th:if="${msg!=null}" th:text="${msg}"></span>
+		</p>
 		<div class="section"  th:style="'height: ' + ${830+orderConfirmData.items.size()*132} + 'px; margin-left: 15%;' ">
 			<!--收货人信息-->
 			<div class="top-2">

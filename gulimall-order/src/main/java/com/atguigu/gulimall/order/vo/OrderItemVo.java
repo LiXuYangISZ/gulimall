@@ -54,11 +54,11 @@ public class OrderItemVo implements Serializable {
      */
     private BigDecimal weight;
 
-    /**
-     * 获取商品总价
-     * @return
-     */
-    public BigDecimal getTotalPrice() {
-        return price.multiply(new BigDecimal(count));
-    }
+    // /**
+    //  * 获取商品总价
+    //  * @return
+    //  */
+    // public BigDecimal getTotalPrice() {
+    //     return price.multiply(new BigDecimal(count));
+    // }
 }

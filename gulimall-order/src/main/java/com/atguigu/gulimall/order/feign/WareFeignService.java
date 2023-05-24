@@ -40,5 +40,5 @@ public interface WareFeignService {
      * @return
      */
     @PostMapping("/ware/wareinfo/lock/order")
-    R orderLockStock(WareSkuLockVo vo);
+    R orderLockStock(@RequestBody WareSkuLockVo vo);
 }

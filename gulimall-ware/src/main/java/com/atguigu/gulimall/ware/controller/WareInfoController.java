@@ -9,6 +9,7 @@ import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
 import com.atguigu.gulimall.ware.vo.LockStockResult;
 import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,6 +27,7 @@ import com.atguigu.common.utils.R;
  * @email xuyang.li@gmail.com
  * @date 2023-02-27 21:50:41
  */
+@Slf4j
 @RestController
 @RequestMapping("ware/wareinfo")
 public class WareInfoController {
@@ -105,10 +107,13 @@ public class WareInfoController {
      * @return
      */
     @PostMapping("/lock/order")
-    public R orderLockStock(WareSkuLockVo vo){
+    public R orderLockStock(@RequestBody WareSkuLockVo vo){
         try {
-            wareInfoService.orderLockStock(vo);
-            return R.ok();
+            Boolean result = wareInfoService.orderLockStock(vo);
+            if(result){
+                return R.ok();
+            }
+            return R.error("商品数据不能为空~");
         }catch (Exception e){
             return R.error(BizCodeEnum.NO_STOCK_EXCEPTION.getCode(),BizCodeEnum.NO_STOCK_EXCEPTION.getMessage());
         }

@@ -7,6 +7,7 @@ import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.order.entity.OrderItemEntity;
 import com.atguigu.gulimall.order.enume.OrderStatusEnum;
+import com.atguigu.gulimall.order.exception.NoStockException;
 import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
 import com.atguigu.gulimall.order.feign.ProductFeignService;
@@ -178,7 +179,6 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }else{
             // 1、创建订单
             OrderCreateVo order = createOrder();
-            submitOrderResponseVo.setCode(0);
             /**
              * 2、验证价格
              * payAmount:后台计算过的实际价格
@@ -194,7 +194,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             // 3、保存订单
             saveOrder(order);
             /**
-             * 4、锁库存【只要有异常就回滚订单数据】
+             * 4、远程锁库存【只要有异常就回滚订单数据】
              * 所有订单项（skuId、num）
              */
             WareSkuLockVo wareSkuLockVo = new WareSkuLockVo();
@@ -208,11 +208,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             wareSkuLockVo.setLockItems(orderItemVos);
             R r = wareFeignService.orderLockStock(wareSkuLockVo);
             if(r.getCode() == 0){
-                // 锁成功,继续后序操作~
+                // 锁成功
+                submitOrderResponseVo.setCode(0);
+                submitOrderResponseVo.setOrder(order.getOrder());
             }else{
-                // 锁定失败
+                // MY NOTES 为了保证事务，这里改为抛出异常，不然这里只是一个普通的返回，订单数据依然可以保存成功。
+                throw new NoStockException();
+                // submitOrderResponseVo.setCode(3);
             }
-
+            return submitOrderResponseVo;
         }
         return submitOrderResponseVo;
     }
