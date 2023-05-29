@@ -45,3 +45,14 @@
 
  server:
    port: 9000
+# seata:
+#   enabled: true
+##   tx-service-group: my-tx-group
+#   service:
+#     vgroup-mapping:
+#       my-tx-group: seata-server
+#   tx-service-group: 123
+ #   registry:
+#     nacos:
+#       server-addr: 192.168.174.128:8848
+#       application: seata-server

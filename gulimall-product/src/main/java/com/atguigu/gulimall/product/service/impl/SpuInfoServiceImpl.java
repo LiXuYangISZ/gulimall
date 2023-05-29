@@ -86,7 +86,7 @@ public class SpuInfoServiceImpl extends ServiceImpl <SpuInfoDao, SpuInfoEntity> 
 
     /**
      * 保存商品信息
-     *
+     * TODO 此处可以使用Seata来解决分布式事务的问题~
      * @param vo
      */
     @Transactional

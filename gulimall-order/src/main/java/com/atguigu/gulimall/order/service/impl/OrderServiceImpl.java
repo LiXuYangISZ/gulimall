@@ -170,9 +170,16 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      *   ② 分布式机器。比如库存锁成功了，但是下面扣减积分的时候出现了异常。然后Order进行回滚，但是锁定的库存无法进行回滚了。
      *   因为你本地事务是无法控制人家远程服务的事务的。事务本质是在一个连接中的多个操作，而不同服务肯定对应着不同的连接了。
      *
+     *  Seata适合非高并发业务的分布式事务场景。底层采用的是加锁（全局）的方式进行实现~
+     *  对于高并发业务的事务，2PC和TCC都不适用。我们可以采取可靠消息+最终一致性的方案~
+     *  ①为了保证高并发。库存服务自己回滚。可以发消息给库存服务；【比如扣减积分失败了，但是库存已经锁定成功了。coupon服务就可以发消息给库存让其回滚~】
+     *  ②库存服务本身也可以使用自动解锁模式----延时队列 【超时自动解锁】/ 使用定时任务扫描进行解锁。
+     *
+     *
      * @param orderSubmitVo
      * @return
      */
+    // @GlobalTransactional  //因为订单业务属于高并发业务，Seata并不适合这种场景。
     @Transactional
     @Override
     public SubmitOrderResponseVo submitOrder(OrderSubmitVo orderSubmitVo) {
