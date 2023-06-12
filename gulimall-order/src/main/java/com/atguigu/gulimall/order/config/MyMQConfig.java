@@ -26,7 +26,7 @@ public class MyMQConfig {
      * @param message
      * @throws IOException
      */
-    @RabbitListener(queues = {"order.release.queue"})
+    @RabbitListener(queues = {"order.release.order.queue"})
     public void listener(OrderEntity entity, Channel channel, Message message) throws IOException {
         System.out.println("收到过期的订单信息：准备关闭订单"+entity.getOrderSn());
         // 手动ACK
@@ -54,7 +54,7 @@ public class MyMQConfig {
 
     @Bean
     public Queue orderReleaseQueue(){
-        return new Queue("order.release.queue",true,false,false);
+        return new Queue("order.release.order.queue",true,false,false);
     }
 
     @Bean
@@ -69,7 +69,7 @@ public class MyMQConfig {
 
     @Bean
     public Binding orderReleaseOrderBinding(){
-        return new Binding("order.release.queue", Binding.DestinationType.QUEUE, "order-event-exchange", "order.release.order", null);
+        return new Binding("order.release.order.queue", Binding.DestinationType.QUEUE, "order-event-exchange", "order.release.order", null);
     }
 
 

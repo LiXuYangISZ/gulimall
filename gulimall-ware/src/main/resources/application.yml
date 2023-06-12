@@ -10,6 +10,17 @@ spring:
         server-addr: 192.168.174.128:8848
   application:
     name: gulimall-ware
+  rabbitmq:
+    host: 192.168.174.128
+    port: 5672
+    virtual-host: /
+    publisher-confirms: true # 开启发送端确认
+    publisher-returns: true  # 开启发送端抵达队列的确认
+    template:
+      mandatory: true # 只要抵达队列，以异步发送优先回调我们这个returnConfirm
+    listener:
+      simple:
+        acknowledge-mode: manual # 手动ack消息
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
     time-zone: GMT+8

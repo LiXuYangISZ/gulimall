@@ -14,4 +14,4 @@ spring:
     store-type: redis
 
 server:
-  port: 12000
+  port: 12001
