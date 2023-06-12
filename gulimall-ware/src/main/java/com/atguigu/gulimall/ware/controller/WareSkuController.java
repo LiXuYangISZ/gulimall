@@ -2,7 +2,9 @@ package com.atguigu.gulimall.ware.controller;
 
 import java.util.*;
 
+import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.common.to.SkuHasStockTo;
+import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -93,5 +95,23 @@ public class WareSkuController {
 
         return R.ok();
     }
+    /**
+     * 锁定库存
+     * @param vo
+     * @return
+     */
+    @PostMapping("/lock/order")
+    public R orderLockStock(@RequestBody WareSkuLockVo vo){
+        try {
+            Boolean result = wareSkuService.orderLockStock(vo);
+            if(result){
+                return R.ok();
+            }
+            return R.error("商品数据不能为空~");
+        }catch (Exception e){
+            return R.error(BizCodeEnum.NO_STOCK_EXCEPTION.getCode(),BizCodeEnum.NO_STOCK_EXCEPTION.getMessage());
+        }
+    }
+
 
 }

@@ -16,20 +16,4 @@ import java.util.List;
  */
 @Mapper
 public interface WareInfoDao extends BaseMapper<WareInfoEntity> {
-
-    /**
-     * 列出包含改商品的仓库列表
-     * @param skuId
-     * @return
-     */
-    List<Long> listWareIdsHasSkuStock(@Param("skuId") Long skuId);
-
-    /**
-     * 锁定库存
-     * @param skuId
-     * @param wareId
-     * @param count
-     * @return
-     */
-    Long lockSkuStock(@Param("skuId") Long skuId, @Param("wareId") Long wareId, @Param("count") Long count);
 }

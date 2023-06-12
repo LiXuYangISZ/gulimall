@@ -1,14 +1,8 @@
 package com.atguigu.gulimall.ware.controller;
 
-import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-
-import com.atguigu.common.exception.BizCodeEnum;
 import com.atguigu.gulimall.ware.vo.FareAndAddressVo;
-import com.atguigu.gulimall.ware.vo.LockStockResult;
-import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -99,23 +93,5 @@ public class WareInfoController {
     public R getFare(@RequestParam("addrId") Long addrId){
         FareAndAddressVo fare = wareInfoService.getFare(addrId);
         return R.ok().setData(fare);
-    }
-
-    /**
-     * 锁定库存
-     * @param vo
-     * @return
-     */
-    @PostMapping("/lock/order")
-    public R orderLockStock(@RequestBody WareSkuLockVo vo){
-        try {
-            Boolean result = wareInfoService.orderLockStock(vo);
-            if(result){
-                return R.ok();
-            }
-            return R.error("商品数据不能为空~");
-        }catch (Exception e){
-            return R.error(BizCodeEnum.NO_STOCK_EXCEPTION.getCode(),BizCodeEnum.NO_STOCK_EXCEPTION.getMessage());
-        }
     }
 }
