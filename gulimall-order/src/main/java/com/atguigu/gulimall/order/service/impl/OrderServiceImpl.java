@@ -230,7 +230,7 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 submitOrderResponseVo.setCode(0);
                 submitOrderResponseVo.setOrder(order.getOrder());
                 // TODO 模拟远程扣减积分出现异常。通过现象可以看出订单回滚，库存不会滚~
-                // int i = 10 / 0;
+                int i = 10 / 0;
             }else{
                 // MY NOTES 为了保证事务，这里改为抛出异常，不然这里只是一个普通的返回，订单数据依然可以保存成功。
                 throw new NoStockException();
