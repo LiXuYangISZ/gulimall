@@ -2,11 +2,11 @@ package com.atguigu.gulimall.order.service.impl;
 
 import com.alibaba.fastjson.TypeReference;
 import com.atguigu.common.constant.order.OrderConstant;
+import com.atguigu.common.constant.order.OrderStatusEnum;
 import com.atguigu.common.to.MemberTo;
 import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.order.entity.OrderItemEntity;
-import com.atguigu.gulimall.order.enume.OrderStatusEnum;
 import com.atguigu.gulimall.order.exception.NoStockException;
 import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
@@ -15,6 +15,7 @@ import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
 import com.atguigu.gulimall.order.service.OrderItemService;
 import com.atguigu.gulimall.order.vo.*;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.google.common.base.Joiner;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -239,6 +240,12 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
             return submitOrderResponseVo;
         }
         return submitOrderResponseVo;
+    }
+
+    @Override
+    public OrderEntity getOrderByOrderSn(String orderSn) {
+        OrderEntity order = this.baseMapper.selectOne(new LambdaQueryWrapper <OrderEntity>().eq(OrderEntity::getOrderSn, orderSn));
+        return order;
     }
 
     /**

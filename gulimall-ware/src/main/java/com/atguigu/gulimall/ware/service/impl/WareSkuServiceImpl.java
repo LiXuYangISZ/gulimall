@@ -1,5 +1,7 @@
 package com.atguigu.gulimall.ware.service.impl;
 
+import com.alibaba.fastjson.TypeReference;
+import com.atguigu.common.constant.order.OrderStatusEnum;
 import com.atguigu.common.constant.ware.StockLockStatusEnum;
 import com.atguigu.common.to.mq.StockDetailTo;
 import com.atguigu.common.to.mq.StockLockedTo;
@@ -7,21 +9,27 @@ import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.ware.entity.WareOrderTaskDetailEntity;
 import com.atguigu.gulimall.ware.entity.WareOrderTaskEntity;
 import com.atguigu.gulimall.ware.exception.NoStockException;
+import com.atguigu.gulimall.ware.feign.OrderFeignService;
 import com.atguigu.gulimall.ware.feign.ProductFeignService;
 import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.gulimall.ware.service.WareOrderTaskDetailService;
 import com.atguigu.gulimall.ware.service.WareOrderTaskService;
 import com.atguigu.gulimall.ware.vo.OrderItemVo;
+import com.atguigu.gulimall.ware.vo.OrderVo;
 import com.atguigu.gulimall.ware.vo.SkuWareHasStock;
 import com.atguigu.gulimall.ware.vo.WareSkuLockVo;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.rabbitmq.client.Channel;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.annotation.RabbitHandler;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -35,9 +43,9 @@ import com.atguigu.gulimall.ware.dao.WareSkuDao;
 import com.atguigu.gulimall.ware.entity.WareSkuEntity;
 import com.atguigu.gulimall.ware.service.WareSkuService;
 import org.springframework.transaction.annotation.Transactional;
-import sun.plugin2.message.Message;
 
 
+@RabbitListener(queues = "stock.release.stock.queue")
 @Service("wareSkuService")
 public class WareSkuServiceImpl extends ServiceImpl <WareSkuDao, WareSkuEntity> implements WareSkuService {
 
@@ -53,31 +61,59 @@ public class WareSkuServiceImpl extends ServiceImpl <WareSkuDao, WareSkuEntity> 
     @Autowired
     WareOrderTaskService wareOrderTaskService;
 
+    @Autowired
+    OrderFeignService orderFeignService;
+
     /**
-     * 1、库存自动解锁：下订单成功，库存锁定成功，接下来的业务（积分、优惠券...）调用失败，导致订单回滚。===>锁定的库存就要自动解锁
-     * 2、由于锁库存失败导致订单失败。===> 无需解锁库存
+     * 监听释放库存对应的消息队列，对立面的符合条件的商品库存进行解锁
+     *   1、库存自动解锁：下订单成功，库存锁定成功，接下来的业务（积分、优惠券...）调用失败，导致订单回滚。===>锁定的库存就要自动解锁
+     *   2、由于锁库存失败导致订单失败。===> 无需解锁库存
      * @param to
      * @param message
      */
     @RabbitHandler
-    public void handleStockLockedRelease(StockLockedTo to, Message message){
+    public void handleStockLockedRelease(StockLockedTo to, Message message, Channel channel ) throws IOException {
         System.out.println("收到解锁库存的消息");
         Long id = to.getId();
         StockDetailTo detail = to.getDetail();
         Long detailId = detail.getId();
         /**
-         * 解锁：
-         * 查询数据库关于这个订单的锁定库存信息。
-         * 有。库存锁定成功了，需要进行解锁
-         * 无。库存锁定失败了，库存自动回滚了。无需解锁。
+         * 解锁：查询数据库关于这个订单的锁定库存信息。
+         * 有。说明库存锁定成功了，需要判断订单情况
+         *      1、没有这个订单，说明后序其他流程出错（扣减积分、优惠信息），导致订单回滚了，必须解锁库存。
+         *      2、有这个订单。需要需要判断订单状态，如果已经取消（手动取消、超时未支付被动取消），需要解锁库存
+         * 无。库存锁定失败了，库存自动回滚了。这种情况无需解锁。
          */
         WareOrderTaskDetailEntity wareOrderTaskDetailEntity = wareOrderTaskDetailService.getById(detailId);
         if(wareOrderTaskDetailEntity!=null){
-            // TODO 解锁
+            WareOrderTaskEntity taskEntity = wareOrderTaskService.getById(to.getId());
+            R r = orderFeignService.getOrderByOrderSn(taskEntity.getOrderSn());
+            if(r.getCode()==0){
+                OrderVo order = r.getData(new TypeReference <OrderVo>() {
+                });
+                // 如果没有这个订单或者订单已经被取消，则解锁
+                if(order==null || OrderStatusEnum.CANCLED.getCode().equals(order.getStatus())){
+                    // 解锁
+                    unLockStock(detail);
+                    channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
+                }
+            }else{
+                // 调用失败，则把消息拒绝重新放回队列里面，让别人继续消费解锁
+                channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);
+            }
         }else {
             // 无需解锁
+            channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
         }
 
+    }
+
+    /**
+     * 解锁库存
+     * @param detail
+     */
+    private void unLockStock(StockDetailTo detail) {
+        this.baseMapper.unLockStock(detail.getSkuId(),detail.getWareId(),detail.getSkuNum());
     }
 
     @Override

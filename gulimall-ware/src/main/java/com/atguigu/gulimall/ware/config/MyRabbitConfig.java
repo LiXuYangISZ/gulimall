@@ -23,11 +23,6 @@ import java.util.Map;
 @Configuration
 public class MyRabbitConfig {
 
-    @RabbitListener(queues = "stock.release.stock.queue")
-    public void handleMessage(Message message){
-
-    }
-
     @Autowired
     RabbitTemplate rabbitTemplate;
 

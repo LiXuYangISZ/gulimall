@@ -47,6 +47,10 @@
         update `wms_ware_sku` set stock_locked = stock_locked + #{count}
         where ware_id = #{wareId} and sku_id = #{skuId} and `stock` - `stock_locked` >= #{count}
     </update>
+    <update id="unLockStock">
+        UPDATE `wms_ware_sku` SET `stock_locked` = `stock_locked` + #{skuNum}
+        WHERE `sku_id` = #{skuId} AND `ware_id` = #{wareId};
+    </update>
 
 
 </mapper>

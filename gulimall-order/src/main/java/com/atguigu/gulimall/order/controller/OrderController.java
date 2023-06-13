@@ -27,6 +27,17 @@ public class OrderController {
     private OrderService orderService;
 
     /**
+     * 根据订单Sn获取订单详情
+     * @param orderSn
+     * @return
+     */
+    @GetMapping("/status/{orderSn}")
+    public R getOrderByOrderSn(@PathVariable("orderSn") String orderSn){
+        OrderEntity order = orderService.getOrderByOrderSn(orderSn);
+        return R.ok().setData(order);
+    }
+
+    /**
      * 列表
      */
     @RequestMapping("/list")

@@ -1,9 +1,9 @@
-package com.atguigu.gulimall.order.enume;
+package com.atguigu.common.constant.order;
 
 /**
  * 订单状态枚举类
  */
-public enum  OrderStatusEnum {
+public enum OrderStatusEnum {
     CREATE_NEW(0,"待付款"),
     PAYED(1,"已付款"),
     SENDED(2,"已发货"),
