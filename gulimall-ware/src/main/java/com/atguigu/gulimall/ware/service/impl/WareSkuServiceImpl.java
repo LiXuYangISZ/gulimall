@@ -98,6 +98,9 @@ public class WareSkuServiceImpl extends ServiceImpl <WareSkuDao, WareSkuEntity> 
                     channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
                 }
             }else{
+                /**
+                 * 其实这里可以不用手动进行Reject。因为我们采用了手动ACK进行消息确认，如果该消息不回从队列中删除就会重新排队等待消费。
+                 */
                 // 调用失败，则把消息拒绝重新放回队列里面，让别人继续消费解锁
                 channel.basicReject(message.getMessageProperties().getDeliveryTag(),true);
             }
@@ -113,7 +116,7 @@ public class WareSkuServiceImpl extends ServiceImpl <WareSkuDao, WareSkuEntity> 
      * @param detail
      */
     private void unLockStock(StockDetailTo detail) {
-        this.baseMapper.unLockStock(detail.getSkuId(),detail.getWareId(),detail.getSkuNum());
+        this.baseMapper.unLockStock(detail.getSkuId(),detail.getWareId(),detail.getSkuNum().intValue());
     }
 
     @Override

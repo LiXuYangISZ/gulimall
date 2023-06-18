@@ -3,6 +3,7 @@ package com.atguigu.gulimall.order.interceptor;
 import com.atguigu.common.constant.authserver.AuthServerConstant;
 import com.atguigu.common.to.MemberTo;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.servlet.HandlerInterceptor;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +21,13 @@ public class LoginInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
+        /**
+         * 此远程调用的请求可以不登录【支付超时或者取消时，用户未必是登录状态，而且还是MQ的线程发出的】
+         */
+        boolean flag = new AntPathMatcher().match("/order/order/status/**", request.getRequestURI());
+        if(flag){
+            return true;
+        }
         MemberTo member = (MemberTo) request.getSession().getAttribute(AuthServerConstant.LOGIN_USER);
         if(member!=null){
             // 已登录

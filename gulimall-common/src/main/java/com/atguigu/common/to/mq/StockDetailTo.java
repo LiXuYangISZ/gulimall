@@ -26,7 +26,7 @@ public class StockDetailTo {
     /**
      * 购买个数
      */
-    private Integer skuNum;
+    private Long skuNum;
     /**
      * 工作单id
      */
