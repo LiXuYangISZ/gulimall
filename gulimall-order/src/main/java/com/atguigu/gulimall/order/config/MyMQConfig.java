@@ -15,26 +15,14 @@ import java.util.Map;
  * @author lxy
  * @version 1.0
  * @Description MQ相关配置
+ * 注意：容器中的 Binding、Queue、Exchange都会自动创建（RabbitMQ没有的情况）
  * @date 2023/6/10 15:37
  */
 @Configuration
 public class MyMQConfig {
-    /**
-     * 监听队列
-     * @param entity
-     * @param channel
-     * @param message
-     * @throws IOException
-     */
-    @RabbitListener(queues = {"order.release.order.queue"})
-    public void listener(OrderEntity entity, Channel channel, Message message) throws IOException {
-        System.out.println("收到过期的订单信息：准备关闭订单"+entity.getOrderSn());
-        // 手动ACK
-        channel.basicAck(message.getMessageProperties().getDeliveryTag(),false);
-    }
 
     /**
-     * 容器中的 Binding、Queue、Exchange都会自动创建（RabbitMQ没有的情况）
+     * 订单延迟队列：如果消息过期就会回到指定的交换机中
      * @return
      */
     @Bean

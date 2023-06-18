@@ -244,7 +244,8 @@ public class WareSkuServiceImpl extends ServiceImpl <WareSkuDao, WareSkuEntity> 
             if(r.getCode()==0){
                 OrderVo order = r.getData(new TypeReference <OrderVo>() {
                 });
-                // 如果没有这个订单或者订单已经被取消，则解锁
+                // MY NOTES 如果没有这个订单或者订单已经被取消，则解锁
+                //  这样可以保证，解锁库存不能在订单变为取消支付前执行成功
                 if(order==null || OrderStatusEnum.CANCLED.getCode().equals(order.getStatus())){
                     // 只有是锁定状态才可以进行解锁
                     if(StockLockStatusEnum.LOCKED.getCode().equals(wareOrderTaskDetailEntity.getLockStatus())){

@@ -18,6 +18,7 @@ import com.atguigu.gulimall.order.vo.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.google.common.base.Joiner;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -49,6 +50,9 @@ import org.springframework.web.context.request.RequestContextHolder;
 
 @Service("orderService")
 public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> implements OrderService {
+
+    @Autowired
+    RabbitTemplate rabbitTemplate;
 
     /**
      * 把所需的对象放置ThreadLocal中后，就无须每次传参了，只要是同一个线程都可以获取到
@@ -231,7 +235,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
                 submitOrderResponseVo.setCode(0);
                 submitOrderResponseVo.setOrder(order.getOrder());
                 // TODO 模拟远程扣减积分出现异常。通过现象可以看出订单回滚，库存不会滚~
-                int i = 10 / 0;
+                // int i = 10 / 0;
+                // 订单创建成功，发送消息到MQ，进入延迟队列
+                rabbitTemplate.convertAndSend("order-event-exchange","order.create.order",order.getOrder());
             }else{
                 // MY NOTES 为了保证事务，这里改为抛出异常，不然这里只是一个普通的返回，订单数据依然可以保存成功。
                 throw new NoStockException();
@@ -246,6 +252,21 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     public OrderEntity getOrderByOrderSn(String orderSn) {
         OrderEntity order = this.baseMapper.selectOne(new LambdaQueryWrapper <OrderEntity>().eq(OrderEntity::getOrderSn, orderSn));
         return order;
+    }
+
+    /**
+     * 关闭订单
+     * @param entity
+     */
+    @Override
+    public void closeOrder(OrderEntity entity) {
+        entity = this.baseMapper.selectById(entity.getId());
+        if(entity!=null && OrderStatusEnum.CREATE_NEW.getCode().equals(entity.getStatus())){
+            OrderEntity updateEntity = new OrderEntity();
+            updateEntity.setId(entity.getId());
+            updateEntity.setStatus(OrderStatusEnum.CANCLED.getCode());
+            this.baseMapper.updateById(updateEntity);
+        }
     }
 
     /**
