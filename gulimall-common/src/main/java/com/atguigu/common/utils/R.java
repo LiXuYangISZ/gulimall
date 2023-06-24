@@ -24,7 +24,8 @@ public class R extends HashMap<String, Object> {
 	private static final long serialVersionUID = 1L;
 
 	/**
-	 * 如果是复杂类型，比如List<HashMap<xxx,xxx>>。可以通过类型先转JSON，然后JSON转所需类型
+	 * 如果是复杂类型，比如List<HashMap<xxx,xxx>>。可以通过类型先转JSON，然后JSON转所需类型。
+	 * 原因：接收到的复杂类型里面的对象被自动反序列化成Map了,所以只能转JSON接受
 	 * 场景：待补充...
 	 * @param typeReference
 	 * @param <T>

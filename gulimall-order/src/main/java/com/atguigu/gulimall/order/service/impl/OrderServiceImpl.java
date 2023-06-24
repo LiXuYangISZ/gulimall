@@ -182,6 +182,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
      *  ①为了保证高并发。库存服务自己回滚。可以发消息给库存服务；【比如扣减积分失败了，但是库存已经锁定成功了。coupon服务就可以发消息给库存让其回滚~】
      *  ②库存服务本身也可以使用自动解锁模式----延时队列 【超时自动解锁】/ 使用定时任务扫描进行解锁。
      *
+     * 如果用最大努力通知重试，定时任务重试查数据库，那全部要加分布式锁。用MQ可靠消息，就不用加分布式锁。所以才说，MQ可靠消息是高并发里面性能最高的分布式事务
+     * 解决方案，因为连分布式锁都不要加。
+     *
      *
      * @param orderSubmitVo
      * @return
