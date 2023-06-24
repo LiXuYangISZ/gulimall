@@ -5,6 +5,7 @@ import com.atguigu.common.constant.order.OrderConstant;
 import com.atguigu.common.constant.order.OrderStatusEnum;
 import com.atguigu.common.to.MemberTo;
 import com.atguigu.common.to.SkuHasStockTo;
+import com.atguigu.common.to.mq.OrderTo;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.order.entity.OrderItemEntity;
 import com.atguigu.gulimall.order.exception.NoStockException;
@@ -19,6 +20,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.google.common.base.Joiner;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
@@ -262,10 +264,15 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
     public void closeOrder(OrderEntity entity) {
         entity = this.baseMapper.selectById(entity.getId());
         if(entity!=null && OrderStatusEnum.CREATE_NEW.getCode().equals(entity.getStatus())){
+            // 自动关单
             OrderEntity updateEntity = new OrderEntity();
             updateEntity.setId(entity.getId());
             updateEntity.setStatus(OrderStatusEnum.CANCLED.getCode());
             this.baseMapper.updateById(updateEntity);
+            // 自动解锁库存
+            OrderTo orderTo = new OrderTo();
+            BeanUtils.copyProperties(entity,orderTo);
+            rabbitTemplate.convertAndSend("order-event-exchange","order.release.other",orderTo);
         }
     }
 

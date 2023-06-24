@@ -1,6 +1,11 @@
 package com.atguigu.gulimall.ware.service.impl;
 
+import com.atguigu.common.constant.order.OrderStatusEnum;
+import com.atguigu.common.constant.ware.StockLockStatusEnum;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -24,6 +29,14 @@ public class WareOrderTaskDetailServiceImpl extends ServiceImpl<WareOrderTaskDet
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public List <WareOrderTaskDetailEntity> getLockedOrderTaskDetailByTaskId(Long id) {
+        return this.baseMapper.
+                selectList(new LambdaQueryWrapper <WareOrderTaskDetailEntity>()
+                        .eq(WareOrderTaskDetailEntity::getTaskId, id)
+                        .eq(WareOrderTaskDetailEntity::getLockStatus, StockLockStatusEnum.LOCKED.getCode()));
     }
 
 }

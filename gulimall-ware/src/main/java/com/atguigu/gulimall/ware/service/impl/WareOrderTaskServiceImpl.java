@@ -1,5 +1,6 @@
 package com.atguigu.gulimall.ware.service.impl;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
@@ -24,6 +25,11 @@ public class WareOrderTaskServiceImpl extends ServiceImpl<WareOrderTaskDao, Ware
         );
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public WareOrderTaskEntity getOrderTaskBySn(String orderSn) {
+        return this.baseMapper.selectOne(new LambdaQueryWrapper <WareOrderTaskEntity>().eq(WareOrderTaskEntity::getOrderSn, orderSn));
     }
 
 }
