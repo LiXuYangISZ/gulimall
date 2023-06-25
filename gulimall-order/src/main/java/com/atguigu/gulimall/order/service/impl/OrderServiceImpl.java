@@ -279,6 +279,18 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         }
     }
 
+    @Override
+    public PayVo getOrderPay(String orderSn) {
+        OrderEntity order = this.getOrderByOrderSn(orderSn);
+        PayVo payVo = new PayVo();
+        payVo.setOut_trade_no(orderSn);
+        payVo.setBody("好多好多商品");
+        payVo.setSubject("结算订单");
+        String payPrice = order.getPayAmount().setScale(2, BigDecimal.ROUND_UP).toString();
+        payVo.setTotal_amount(payPrice);
+        return payVo;
+    }
+
     /**
      * 保存订单信息
      * @param orderCreateVo
