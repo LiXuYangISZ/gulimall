@@ -23,9 +23,21 @@ import com.atguigu.common.utils.R;
 @RestController
 @RequestMapping("order/order")
 public class OrderController {
+
     @Autowired
     private OrderService orderService;
 
+    /**
+     * 分页获取用户订单信息
+     * @param params
+     * @return
+     */
+    @PostMapping("/listWithItem")
+    public R listWithItem(@RequestBody Map<String, Object> params){
+        PageUtils page = orderService.queryPageWithItem(params);
+        System.out.println(page);
+        return R.ok().setData(page);
+    }
     /**
      * 根据订单Sn获取订单详情
      * @param orderSn

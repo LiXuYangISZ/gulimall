@@ -44,7 +44,7 @@
          readTimeout: 30000      # 30秒读取超时
 
  server:
-   port: 9000
+   port: 9001
 # seata:
 #   enabled: true
 ##   tx-service-group: my-tx-group

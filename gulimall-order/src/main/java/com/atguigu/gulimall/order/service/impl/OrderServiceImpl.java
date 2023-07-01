@@ -291,6 +291,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         return payVo;
     }
 
+    @Override
+    public PageUtils queryPageWithItem(Map <String, Object> params) {
+        Long memberId = LoginInterceptor.threadLocal.get().getId();
+
+        // 查询所有的订单信息
+        IPage <OrderEntity> page = this.page(new Query <OrderEntity>().getPage(params), new LambdaQueryWrapper <OrderEntity>().eq(OrderEntity::getMemberId, memberId)
+                .orderByDesc(OrderEntity::getCreateTime));
+        List <OrderEntity> orderEntities = page.getRecords();
+
+        // 封装所有的订单项信息
+        if(orderEntities!=null && orderEntities.size() > 0){
+            orderEntities = orderEntities.stream().map(OrderEntity -> {
+                List <OrderItemEntity> orderItemEntities = orderItemService.list(new LambdaQueryWrapper <OrderItemEntity>().eq(OrderItemEntity::getOrderSn, OrderEntity.getOrderSn()));
+                OrderEntity.setOrderItems(orderItemEntities);
+                return OrderEntity;
+            }).collect(Collectors.toList());
+        }
+
+        page.setRecords(orderEntities);
+
+        return new PageUtils(page);
+    }
+
     /**
      * 保存订单信息
      * @param orderCreateVo

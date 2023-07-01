@@ -20,6 +20,7 @@ public class MemberWebConfiguration implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
+        //  由于登录会远程调用member服务，所有需要过滤此路径。
         registry.addInterceptor(loginInterceptor).addPathPatterns("/**").excludePathPatterns("/member/**");
     }
 }
