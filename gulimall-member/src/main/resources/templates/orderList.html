@@ -203,7 +203,7 @@
         <table class="table" th:each="order : ${orders.list}">
           <tr>
             <td colspan="7" style="background:#F7F7F7" >
-              <!--<span style="color:#AAAAAA" th:text="${#dates.format(order.createTime,'yyyy年MM月dd日 HH:mm:ss')}"></span>-->
+              <span style="color:#AAAAAA" th:text="${order.createTime}"></span>
               <span><ruby style="color:#AAAAAA">订单号:</ruby> [[${order.orderSn}]]</span>
               <span>京东官方旗舰店<i class="table_i"></i></span>
               <i class="table_i5 isShow"></i>
