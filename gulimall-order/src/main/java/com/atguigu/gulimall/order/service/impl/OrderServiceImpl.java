@@ -8,6 +8,7 @@ import com.atguigu.common.to.SkuHasStockTo;
 import com.atguigu.common.to.mq.OrderTo;
 import com.atguigu.common.utils.R;
 import com.atguigu.gulimall.order.entity.OrderItemEntity;
+import com.atguigu.gulimall.order.entity.PaymentInfoEntity;
 import com.atguigu.gulimall.order.exception.NoStockException;
 import com.atguigu.gulimall.order.feign.CartFeignService;
 import com.atguigu.gulimall.order.feign.MemberFeignService;
@@ -15,6 +16,7 @@ import com.atguigu.gulimall.order.feign.ProductFeignService;
 import com.atguigu.gulimall.order.feign.WareFeignService;
 import com.atguigu.gulimall.order.interceptor.LoginInterceptor;
 import com.atguigu.gulimall.order.service.OrderItemService;
+import com.atguigu.gulimall.order.service.PaymentInfoService;
 import com.atguigu.gulimall.order.vo.*;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
@@ -27,10 +29,7 @@ import org.springframework.data.redis.core.script.DefaultRedisScript;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -55,6 +54,9 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
 
     @Autowired
     RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    PaymentInfoService paymentInfoService;
 
     /**
      * 把所需的对象放置ThreadLocal中后，就无须每次传参了，只要是同一个线程都可以获取到
@@ -312,6 +314,29 @@ public class OrderServiceImpl extends ServiceImpl<OrderDao, OrderEntity> impleme
         page.setRecords(orderEntities);
 
         return new PageUtils(page);
+    }
+
+    @Override
+    public String handlePayResult(PayAsyncVo payAsyncVo) {
+        // 1、保存交易流水
+        PaymentInfoEntity infoEntity = new PaymentInfoEntity();
+        infoEntity.setAlipayTradeNo(payAsyncVo.getTrade_no());
+        infoEntity.setOrderSn(payAsyncVo.getOut_trade_no());
+        infoEntity.setPaymentStatus(payAsyncVo.getTrade_status());
+        infoEntity.setCallbackTime(payAsyncVo.getNotify_time());
+        infoEntity.setTotalAmount(new BigDecimal(payAsyncVo.getTotal_amount()));
+        infoEntity.setSubject(payAsyncVo.getSubject());
+        infoEntity.setCreateTime(new Date());
+        infoEntity.setConfirmTime(new Date());
+        paymentInfoService.save(infoEntity);
+
+        // 2、修改订单的状态信息
+        if(payAsyncVo.getTrade_status().equals("TRADE_FINISHED") || payAsyncVo.getTrade_status().equals("TRADE_SUCCESS")){
+            String outTradeNo = payAsyncVo.getOut_trade_no();
+            this.baseMapper.updateOrderStatus(outTradeNo,OrderStatusEnum.PAYED.getCode());
+        }
+
+        return "success";
     }
 
     /**
