@@ -25,8 +25,13 @@ public class LoginInterceptor implements HandlerInterceptor {
          * 此远程调用的请求可以不登录【支付超时或者取消时，用户未必是登录状态，而且还是MQ的线程发出的】
          * 对于MQ监听的线程【解锁订单、解锁库存】，和用户是否登录没有半毛钱关系，是MQ的线程，也不会和用户有关，所以要单独放行
          */
-        boolean flag = new AntPathMatcher().match("/order/order/status/**", request.getRequestURI());
-        if(flag){
+        AntPathMatcher pathMatcher = new AntPathMatcher();
+        String uri = request.getRequestURI();
+        boolean flag1 = pathMatcher.match("/order/order/status/**", uri);
+        // 支付宝支付成功，回调通知商城服务无需登录~
+        boolean flag2 = pathMatcher.match("/payed/notify", uri);
+
+        if(flag1 || flag2){
             return true;
         }
         MemberTo member = (MemberTo) request.getSession().getAttribute(AuthServerConstant.LOGIN_USER);
